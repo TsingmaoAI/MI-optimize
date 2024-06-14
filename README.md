@@ -330,7 +330,10 @@ This table summarizes the performance evaluation across various datasets, highli
 Note: W/A Calib. represents the Weight and Activation calibration configuration used for each test. Each row details the results using different datasets as calibration sets on the same test dataset.
 
 ## Contact Us
-WeChat    QQ
+| Contact Us                |                      |
+|---------------------------|----------------------|
+| **QQ Group**  |**WeChat**|
+| <img src="QQGroup.jpg" width="100"> | <img src="WeChat.jpg" width="100"> |
 
 
 ## Cite
