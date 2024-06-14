@@ -11,6 +11,7 @@ from mi_optimize.quantization.layers import LinearQuantHub
 def cal_div_loss(result_1, result_2):
     return mean(F.kl_div(F.log_softmax(x_e.float(), dim=-1), F.log_softmax(y_e.float(), dim=-1), reduction='batchmean', log_target=True).item() for x_e, y_e in zip(result_1, result_2))
 
+
 def _to_device(tensors, device='cuda'):
     if isinstance(tensors, torch.Tensor):
         return tensors.to(device)
@@ -21,6 +22,7 @@ def _to_device(tensors, device='cuda'):
     if isinstance(tensors, dict):
         return {k: _to_device(v, device) for k, v in tensors.items()}
     raise ValueError("Unknown type of tensors: {}".format(type(tensors)))
+
 
 def _to_cpu(tensors):
     return _to_device(tensors, 'cpu')

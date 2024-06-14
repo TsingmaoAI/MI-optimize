@@ -1,12 +1,11 @@
 rtn:
   kwargs:
-    model_type: "other_model"
+    model_type: "llama"
     w_dtype: int4    # select from ['int2', 'int3', 'int4', 'fp4', 'int8', 'fp8', 'float16']
     a_dtype: float16   # select from ['int2', 'int3', 'int4', 'fp4', 'int8', 'fp8', 'float16']
-    groupsize: 128
     num_calibrate: 1
     calibrate_seq_length: 2048
-    device: 'cuda:7'
+    device: 'cuda'
     offload: 'cpu'
     w_groupsize: -1
     a_groupsize: -1
@@ -18,7 +17,7 @@ rtn:
     a_unsign: True
     quantization_type: 'static'
     block_sequential: True
-    layer_sequential: False
+    layer_sequential: True
     skip_layers:                   # the linear layer to skip, should match the module name
       - lm_head
   calibrate_name: 'wikitext2'

@@ -2,13 +2,14 @@ import yaml
 import logging
 from . import STR_TO_PRECISION
 from mi_optimize.datasets.data_loader import get_calibrate_dataset
-import sys
-sys.path.append("../..")
-
+    
 # def quant
 def quantize(model, tokenizer, quant_config):
     with open('configs/default_quant_config.yaml', 'r') as file:
         default_quant_config = yaml.safe_load(file)
+    
+    with open("./configs/datasets_path.yaml") as file:
+        dataset_path_config = yaml.safe_load(file)
     
     algo = quant_config['algo']
     
@@ -28,7 +29,7 @@ def quantize(model, tokenizer, quant_config):
     calibrate_name = config['calibrate_name']
     logging.info(f"calibrate_name: {calibrate_name}")
     
-    calibrate_data = get_calibrate_dataset(calibrate_name=calibrate_name, tokenizer=tokenizer, nsamples=kwargs['num_calibrate'], seqlen=kwargs['calibrate_seq_length'])
+    calibrate_data = get_calibrate_dataset(calibrate_name=calibrate_name, tokenizer=tokenizer, nsamples=kwargs['num_calibrate'], seqlen=kwargs['calibrate_seq_length'], dataset_path_config=dataset_path_config)
     
     if model_type == 'llama':
         from mi_optimize.quantization.models.llama_seq import llama_sequential
@@ -39,7 +40,7 @@ def quantize(model, tokenizer, quant_config):
         model = baichuan_sequential(model, algo, calibrate_data, **kwargs)
         return model
     elif model_type == 'chatglm':
-        from mi_optimize.quantization.models.baichuan_seq import chatglm_sequential
+        from mi_optimize.quantization.models.chatglm_seq import chatglm_sequential
         model = chatglm_sequential(model, algo, calibrate_data, **kwargs)
         return model
     elif model_type == 'other_model':

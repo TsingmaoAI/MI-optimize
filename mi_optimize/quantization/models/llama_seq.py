@@ -10,14 +10,13 @@ from mi_optimize.memory import clear_mem
 
 @torch.no_grad()
 def llama_sequential(model, algo, data, **kwargs):
-    logging.info(f"Applying {algo} quantization to the llama model with kwargs: {kwargs}")
-    device = kwargs.get('device')
-    offload = kwargs.get('offload')
-    block_sequential = kwargs.get('block_sequential')
-    layer_sequential = kwargs.get('layer_sequential') 
+    device = kwargs['device']
+    offload = kwargs['offload']
+    block_sequential = kwargs['block_sequential']
+    layer_sequential = kwargs['layer_sequential'] 
     
     with torch.no_grad() :
-        replace_module(model, exclude_layers=kwargs.get('skip_layers'), include_layers=['.*'])
+        replace_module(model, exclude_layers=kwargs['skip_layers'], include_layers=['.*'])
         use_cache = model.config.use_cache
         model_device = model.device
         model.config.use_cache = False

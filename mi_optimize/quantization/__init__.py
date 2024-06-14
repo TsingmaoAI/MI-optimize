@@ -47,8 +47,8 @@ PRECISION_TO_STR = {
     Precision.INT8: 'int8',
     Precision.INT9: 'int9',
     Precision.INT10: 'int10',
-    Precision.FP16: 'fp16',
-    Precision.FP32: 'fp32'
+    Precision.FP16: 'float16',
+    Precision.FP32: 'float32'
 }
 
 
@@ -62,8 +62,8 @@ STR_TO_PRECISION = {
     'int6': Precision.INT6,
     'int7': Precision.INT7,
     'int8': Precision.INT8,
-    'fp16': Precision.FP16,
-    'fp32': Precision.FP32
+    'float16': Precision.FP16,
+    'float32': Precision.FP32
 }
 
 INT_TO_PRECISION = {

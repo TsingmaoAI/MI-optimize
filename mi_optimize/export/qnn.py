@@ -4,7 +4,7 @@ from torch.nn import functional as F
 import sys
 sys.path.append('../..')
 
-from mi_optimize.quantization.utils import Precision, PRECISION_TO_BIT
+from mi_optimize.quantization import Precision, PRECISION_TO_BIT
 from mi_optimize.quantization.quantizer import LinearRTNQuantizer, LinearGPTQQuantizer, LinearAwqQuantizer, LinearSmoothQuantizer
 from mi_optimize.quantization.quantizer import Quantizer
 import numpy as np

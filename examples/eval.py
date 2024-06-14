@@ -3,14 +3,19 @@ from mi_optimize import Benchmark
 from transformers import LlamaTokenizer, AutoModelForCausalLM
 
 # model_path = 'meta-llama/Llama-2-7b-hf'
-model_path = 'meta-llama/Llama-2-7b-hf'
+model_path = '/home/wf/models/Llama-2-7b-hf'
 quantize_model_path = 'llama-2-7b-quant.pth'
 # Load Benchmark
 benchmark = Benchmark()
 
 # Load Model && tokenizer
 tokenizer = LlamaTokenizer.from_pretrained(model_path)
-model = AutoModelForCausalLM.from_pretrained(model_path, trust_remote_code=True).half().cuda()
+# model = AutoModelForCausalLM.from_pretrained(model_path, trust_remote_code=True).half().cuda()
+model = torch.load(quantize_model_path)
+
+model = model.eval()
+
+model= model.cuda()
 
 # Evaluate Perplexity (PPL) on various datasets
 test_dataset = ['wikitext2']  

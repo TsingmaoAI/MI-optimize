@@ -9,7 +9,6 @@ from mi_optimize.quantization.quantizer import *
 from mi_optimize.memory import clear_mem
 
 def chatglm_sequential(model, algo, data, **kwargs):
-    logging.info(f"Applying {algo} quantization to the llama model with kwargs: {kwargs}")
     device = kwargs.get('device')
     offload = kwargs.get('offload')
     

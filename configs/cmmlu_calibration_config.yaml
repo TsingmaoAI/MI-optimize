@@ -1,5 +1,7 @@
 calibration_split: 'val'
-hm:
+cmmlu:
+  calibrate_nums: 4
+cmmlu_hm:
   calibrate_subs: Humanities
   calibrate_nums:
     arts: 12
@@ -13,7 +15,7 @@ hm:
     professional_law: 12
     world_history: 12
     world_religions: 12
-st:
+cmmlu_st:
   calibrate_subs: STEM
   calibrate_nums:
     anatomy: 7
@@ -33,7 +35,7 @@ st:
     high_school_physics: 8
     machine_learning: 8
     virology: 8
-ss:
+cmmlu_ss:
   calibrate_subs: Social Sciences
   calibrate_nums:
     business_ethics: 9
