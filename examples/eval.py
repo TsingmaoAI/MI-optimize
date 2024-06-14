@@ -10,7 +10,6 @@ benchmark = Benchmark()
 
 # Load Model && tokenizer
 tokenizer = LlamaTokenizer.from_pretrained(model_path)
-# model = torch.load(quant_path)
 model = AutoModelForCausalLM.from_pretrained(model_path, trust_remote_code=True).half().cuda()
 
 # Evaluate Perplexity (PPL) on various datasets
