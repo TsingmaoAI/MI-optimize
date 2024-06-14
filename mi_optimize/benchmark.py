@@ -159,9 +159,6 @@ class Benchmark:
         "NameEntityRecognition": 50,
         "QuestionAnswering": 5}
 
-        """
-        评估模型在 BOSS 基准测试上的表现。
-        """
         logging.info("Evaluating the model on the BOSS benchmark")
         # 伪代码：假设模型有一个 compute_boss_score 方法
         generator = pipeline(task="text-generation",
@@ -198,9 +195,6 @@ class Benchmark:
         return results
 
     def eval_lmeval(self, model, tokenizer, eval_tasks, num_shot):
-        """
-        使用 lm-evaluation-harness 评估模型在多个任务上的表现。
-        """
         from mi_optimize.datasets.load_lmeval import get_testdata
         from benchmark.lmeval.lmeval import get_loglikelihood, greedy_until, loglikelihood_rolling
         return_dict, tasks_dict = get_testdata(eval_tasks, num_shot)

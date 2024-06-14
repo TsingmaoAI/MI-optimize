@@ -27,7 +27,6 @@ gptq:
   kwargs:
     model_type: "llama"
     w_dtype: int4    # select from ['int2', 'int3', 'int4', 'fp4', 'int8', 'fp8', 'float16']
-    a_dtype: float16   # select from ['int2', 'int3', 'int4', 'fp4', 'int8', 'fp8', 'float16']
     num_calibrate: 1
     calibrate_seq_length: 2048
     device: 'cuda:7'
@@ -47,7 +46,6 @@ awq:
   kwargs:
     model_type: "llama"
     w_dtype: int4    # select from ['int2', 'int3', 'int4', 'fp4', 'int8', 'fp8', 'float16']
-    a_dtype: float16   # select from ['int2', 'int3', 'int4', 'fp4', 'int8', 'fp8', 'float16']
     num_calibrate: 1
     calibrate_seq_length: 2048
     device: 'cuda'

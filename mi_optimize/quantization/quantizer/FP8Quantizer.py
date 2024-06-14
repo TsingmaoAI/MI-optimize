@@ -17,7 +17,6 @@ class LinearFP8Quantizer(BaseQuantizer):
     def quanz_fix_E4M3(self, input, S, is_scale, is_channel=False, channel_dim=0):
         S = S if is_scale else torch.ones_like(S)
         if is_channel:
-            # 分通道下，将scale按通道维度view
             view_s = [1 if i != channel_dim else input.size(channel_dim) \
                     for i in range(len(input.size()))]
             S = S.view(view_s)
@@ -35,7 +34,6 @@ class LinearFP8Quantizer(BaseQuantizer):
     def quanz_fix_E5M2(self, input, S, is_scale, is_channel=False, channel_dim=0):
         S = S if is_scale else torch.ones_like(S)
         if is_channel:
-            #分通道下， 将scales按通道维度view
             view_s = [1 if i != channel_dim else input.size(channel_dim) \
                     for i in range(len(input.size()))]
             S = S.view(view_s)

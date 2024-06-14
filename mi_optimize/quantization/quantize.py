@@ -11,6 +11,7 @@ def quantize(model, tokenizer, quant_config):
         default_quant_config = yaml.safe_load(file)
     
     algo = quant_config['algo']
+    
     config = default_quant_config[algo].copy()
     config['kwargs'].update(quant_config['kwargs'])
     config['calibrate_name']=quant_config['calibrate_name']

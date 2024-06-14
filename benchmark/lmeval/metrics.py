@@ -1,8 +1,6 @@
 
 import math
 import numpy as np
-# TODO(pshenhao): add sklearn
-# import sklearn.metrics
 
 def yesno(x):
     if x:

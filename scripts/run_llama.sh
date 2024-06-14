@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# 设置默认参数
 MODEL_PATH="/home/wf/models/llama-2/7B"
 ALGO="rtn"
 WBIT=4
@@ -19,7 +18,6 @@ BLOCK_SEQUENTIAL=""
 LAYER_SEQUENTIAL=""
 SAVE=""
 
-# 运行 Python 脚本并传递参数
 python examples/llama/quantization.py \
     --model-path "$MODEL_PATH" \
     --algo "$ALGO" \

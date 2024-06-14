@@ -16,8 +16,6 @@ SA_label_mapping = {"0":"negative", "1":"positive", "2":"neutral"}
 NLI_label_mapping = {"0":"entailment", "1":"neutral","2":"contradiction" }
 TD_label_mapping = {"0":"benign","1":"toxic"}
 
-# from QuestionAnswering import *
-
 MAX_TOKENS = {
     "SentimentAnalysis": 2,
     "ToxicDetection": 1,
@@ -60,7 +58,6 @@ def get_calibrate_boss(task_name, dataset_name, nsamples=208, split='train', shu
     if task_name == "QuestionAnswering": 
         examples = get_BOSS(task_name, dataset_name,split=split,shuffle=shuffle,seed=seed)
         question_num = nsamples if nsamples < len(examples) else len(examples)
-        #取question_num行数据作为列表
         for example in islice(examples, question_num):
             title_str = example['title']
             context_str = example['context']
@@ -158,8 +155,7 @@ def get_BOSS(task_name, dataset_name, split, shuffle=False, seed=42):
 
     return examples
 
-def get_fewshot_BOSS(task_name, dataset_name, fewshot_num, split='test',answer=True,max_length=1024,shuffle=False,seed=42):#few_shot要不要直接指定好，或者是从小的数据集中得到，可以加快速度
-
+def get_fewshot_BOSS(task_name, dataset_name, fewshot_num, split='test',answer=True,max_length=1024,shuffle=False,seed=42):
     if task_name == "QuestionAnswering": 
         prompt = f"### Instruction ###\n\
 Solve the extractive question answering task. Refering to the passage below and extract answer for the question. The answer should be the shortest phrase as it can be.\n\

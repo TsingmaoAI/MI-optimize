@@ -6,7 +6,7 @@ datasets=[]
 #qa
 # with open(f"datasets/BOSS/QuestionAnswering/searchqa/test-all.json",'r') as f:
 #     lines = f.readlines()
-#     for line in lines:#别的数据集也是按行读吗
+#     for line in lines:
 #         json_data = json.loads(line)
 #         datasets.append(json_data)
 

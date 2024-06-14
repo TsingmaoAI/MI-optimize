@@ -1,7 +1,6 @@
 import torch
 from tqdm import tqdm
 import numpy as np
-from transformers import LlamaTokenizer
 
 @torch.no_grad()
 def evaluate_ppl(model, loader, tokenizer):

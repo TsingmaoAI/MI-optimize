@@ -103,10 +103,6 @@ def get_loader(dataset_name, tokenizer, seqlen=2048, nsamples=128, seed=42, data
         raise ValueError(f"Unknown dataset: {dataset_name}")
 
 def get_calibrate_dataset(calibrate_name, tokenizer, nsamples, seqlen):
-    """
-    calibrate: 校准数据集
-    calibrate_name: 校准数据集名称
-    """
     if calibrate_name in ['wikitext2', 'c4', 'ptb']:
         with open('configs/datasets_path.yaml', 'r') as file:
             dataset_path_config = yaml.safe_load(file)
@@ -125,7 +121,7 @@ def get_calibrate_dataset(calibrate_name, tokenizer, nsamples, seqlen):
         from datasets.load_ceval import get_calibrate_ceval
         calibrate_data = get_calibrate_ceval(calibrate_name, calibration_split, calibrate_nums, answer=True, path=calibrate_config['ceval_data_path'])
         
-    elif calibrate_name in ['cmmlu', 'cmmlu_hm', 'cmmlu_st', 'cmmlu_ss']: #todo @psh
+    elif calibrate_name in ['cmmlu', 'cmmlu_hm', 'cmmlu_st', 'cmmlu_ss']:
         from mi_optimize.datasets import get_calibrate_cmmlu
         with open('configs/cmmlu_calibration_config', 'r') as file:
             calibrate_config = yaml.safe_load(file)
@@ -134,7 +130,7 @@ def get_calibrate_dataset(calibrate_name, tokenizer, nsamples, seqlen):
         calibration_split = calibrate_config['calibration_split']
         calibrate_nums = calibrate_config['cmmlu'][calibrate_name]
         calibrate_data = get_calibrate_cmmlu(calibrate_name, calibration_split, calibrate_nums, answer=True, path=calibrate_config['ceval_data_path'])
-    elif calibrate_name in ['NaturalLanguageInference_mnli']: #todo lyj
+    elif calibrate_name in ['NaturalLanguageInference_mnli']: 
         from datasets.load_ceval import get_calibrate_boss
         calibrate_dataset = calibrate_name.split("_")
         calibrate_task_name = calibrate_dataset[0]

@@ -140,22 +140,6 @@ class Quantizer(torch.nn.Module):
         
     # def dequantize(self, )
     def quantize_dequantize(self, data):
-        """
-        量化和反量化函数，支持对称和非对称量化，以及per-group, per-channel和per-tensor量化。
-
-        参数:
-        - data: 输入数据的tensor
-        - bits: 量化位数 (默认8)
-        - method: 量化方法，'symmetric' 或 'asymmetric'
-        - qtype: 量化类型，'per_tensor', 'per_channel', 'per_group'
-        - groupszie: 分组数量 (默认-1, 仅在qtype为'per_group'时有效)
-
-        返回:
-        - dequantized_data: 反量化后的数据
-        - scale: 量化尺度
-        - zero_point: 零点
-        """
-       
         if self.qtype == 'per_tensor':
             x_min = data.min()
             x_max = data.max()

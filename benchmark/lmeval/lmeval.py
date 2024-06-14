@@ -1,33 +1,15 @@
-"""
-@Author :   pshenhao
-@Time   :   2024/04/26
-
-python lmeval.py
-"""
-
-import sys
 import os
 import torch
 import json
 import datetime
 import yaml
-import random
 import torch.nn.functional as F
 
-sys.path.append('./..')
-sys.path.append('../..')
-sys.path.append('../../..')
-from transformers import AutoTokenizer
-import benchmark.lmeval.tasks
 from benchmark.lmeval import utils
-# from utils.utils_lmeval import *
 from tqdm import tqdm
-import collections
-import itertools
 
 with open("./configs/datasets_path.yaml") as file:
     dataset_config = yaml.safe_load(file)
-
 
 
 def get_loglikelihood(model, tokenizer, requests, max_length=2048):
