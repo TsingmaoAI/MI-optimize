@@ -152,6 +152,8 @@ class Benchmark:
         return results
 
     def eval_boss(self, model, tokenizer, test_dataset, split='test', ICL_split='test', num_shot=0):
+        from mi_optimize.datasets.load_boss import get_BOSS,get_str,get_calibrate_BOSS,get_fewshot_BOSS,get_zeroshot_BOSS,get_testdata_BOSS
+        from benchmark.boss.metrics import normalize_answer,f1_score,exact_match_score,metric_max_over_ground_truths,compute_metric
         MAX_TOKENS = {
         "SentimentAnalysis": 2,
         "ToxicDetection": 1,
@@ -159,6 +161,9 @@ class Benchmark:
         "NameEntityRecognition": 50,
         "QuestionAnswering": 5}
 
+        """
+        评估模型在 BOSS 基准测试上的表现。
+        """
         logging.info("Evaluating the model on the BOSS benchmark")
         # 伪代码：假设模型有一个 compute_boss_score 方法
         generator = pipeline(task="text-generation",
@@ -170,24 +175,23 @@ class Benchmark:
         test_dataset = test_dataset.split("_")
         task_name = test_dataset[0]
         dataset_name = test_dataset[1]
-        from datasets import get_testdata_BOSS, get_fewshot_BOSS, get_zeroshot_BOSS
         question_list, answer_list = get_testdata_BOSS(task_name, dataset_name, split=split)
 
-        if num_shot:
-            
+        if num_shot:         
             question_prompt = get_fewshot_BOSS(task_name, dataset_name, num_shot, ICL_split)
         else:
             question_prompt = get_zeroshot_BOSS(task_name, dataset_name)
 
         prediction_list = []
         for question in question_list:
-            print("question:")
-            print(question)
             question = question_prompt + question
         
             output = generator(question, num_return_sequences=1, return_full_text=False, handle_long_generation="hole",
                                temperature=0, max_new_tokens=MAX_TOKENS[task_name], do_sample=False)
             output = output[0]["generated_text"].strip("\n").strip()
+
+            # print("question:",question)
+            # print("answer:",output)
             prediction_list.append(output)
 
         results = compute_metric(task_name, prediction_list, answer_list)

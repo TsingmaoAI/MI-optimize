@@ -126,8 +126,11 @@ def get_calibrate_dataset(calibrate_name, tokenizer, nsamples, seqlen, dataset_p
         calibration_split = calibrate_config['calibration_split']
         calibrate_nums = calibrate_config[calibrate_name]['calibrate_nums']
         calibrate_data = get_calibrate_cmmlu(calibrate_name, calibration_split, calibrate_nums, answer=True, path=dataset_path_config['cmmlu_data_path'])
-    elif calibrate_name in ['NaturalLanguageInference_mnli']: 
-        from datasets.load_ceval import get_calibrate_boss
+    elif calibrate_name in ['QuestionAnswering_squad','QuestionAnswering_advqa','QuestionAnswering_newsqa','QuestionAnswering_searchqa',
+                            'SentimentAnalysis_amazon','SentimentAnalysis_dynasent','SentimentAnalysis_semeval','SentimentAnalysis_sst5',
+                            'NaturalLanguageInference_mnli','NaturalLanguageInference_anli','NaturalLanguageInference_wanli','NaturalLanguageInference_contractnli',
+                            'ToxicDetection_civilcomments','ToxicDetection_advcivil','ToxicDetection_implicithate','ToxicDetection_toxigen']: 
+        from datasets.load_boss import get_calibrate_boss
         calibrate_dataset = calibrate_name.split("_")
         calibrate_task_name = calibrate_dataset[0]
         calibrate_dataset_name = calibrate_dataset[1]
