@@ -10,7 +10,7 @@ from transformers import pipeline
 
 # Config for Log and Dataset path
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-with open("./configs/datasets_path.yaml") as file:
+with open("configs/datasets_path.yaml") as file:
     dataset_config = yaml.safe_load(file)
 
 class Benchmark:
@@ -39,9 +39,6 @@ class Benchmark:
         return np.exp(total_loss / total_count)
 
     def eval_ppl(self, model, tokenizer, test_dataset):
-        """
-        评估模型在给定测试数据集上的困惑度（Perplexity）。
-        """
         logging.info("Evaluating Perplexity (PPL) on the dataset")
         
         results = {}
@@ -161,11 +158,8 @@ class Benchmark:
         "NameEntityRecognition": 50,
         "QuestionAnswering": 5}
 
-        """
-        评估模型在 BOSS 基准测试上的表现。
-        """
         logging.info("Evaluating the model on the BOSS benchmark")
-        # 伪代码：假设模型有一个 compute_boss_score 方法
+
         generator = pipeline(task="text-generation",
                      model=model,
                      tokenizer=tokenizer,

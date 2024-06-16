@@ -46,4 +46,4 @@ ceval_ss:
   middle_school_politics: 13
   middle_school_geography: 12
 
-ceval_data_path: ''datasets/ceval-exam''
+ceval_data_path: 'datasets/ceval-exam'

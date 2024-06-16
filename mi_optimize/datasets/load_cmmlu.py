@@ -94,7 +94,7 @@ def load_cmmlu(subjects, data_set, path="haonan-li/cmmlu"):
     datasets = {}
     for sub in subjects:
         datasets[sub] = []
-        sub_path = path + r"//" + data_set + r"//" + sub + ".csv"
+        sub_path = path + r"/" + data_set + r"/" + sub + ".csv"
         with open(sub_path, 'r', encoding='utf-8') as file:
             reader = csv.DictReader(file)
             for row in reader:

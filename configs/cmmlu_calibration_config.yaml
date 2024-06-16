@@ -1,5 +1,6 @@
-calibration_split: 'val'
-cmmlu:
+calibration_split: 'dev'
+cmmlu_all:
+  calibrate_subs: all
   calibrate_nums: 4
 cmmlu_hm:
   calibrate_subs: Humanities

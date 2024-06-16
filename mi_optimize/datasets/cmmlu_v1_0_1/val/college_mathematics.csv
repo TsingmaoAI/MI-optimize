@@ -1,0 +1,18 @@
+Unnamed: 0,Question,A,B,C,D,Answer
+0,设 A，B 为n阶矩阵， 则 $|-2(\begin{array}{cc}A^T & O \\ O & B^{-1}\end{array})|$ 等于(),$-2|A^T||B|$,$(-2)^{2n}|A||B|^{-1}$,$(-2)^n|A||B|^{-1}$,$-2|A||B|^{-1}$,B
+1,设函数 $f(x)=\frac{1}{e^{\frac{x}{x-1}}-1}$， 则 ( ),$x=0， x=1$ 都是 $f(x)$ 的第一类间断点;,$x=0$ 是 $f(x)$ 的第一类间断点， $x=1$ 是 $f(x)$ 的第二类间断点;,$x=0， x=1$ 都是 $f(x)$ 的第二类间断点;,$x=0$ 是 $f(x)$ 的第二类间断点， $x=1$ 是 $f(x)$ 的第一类间断点,D
+2,下列各对函数中， ( ) 是相同的.,$f(x)=\ln x^3，g(x)=3 \ln x$,$f(x)=\ln x^2， g(x)=2 \ln x$,$f(x)=\sqrt{x^2}， g(x)=x$,$f(x)=\frac{x^2-1}{x+1}， g(x)=x-1$,A
+3,微分方程 $y^{\prime \prime}+2 y^{\prime}+2 y=\mathrm{e}^{-x} \sin x$ 的特解形式为 ( ).,$\mathrm{e}^{-x}(a \cos x+b \sin x)$,$\mathrm{e}^{-x}(a \cos x+b x \sin x)$,$\mathrm{e}^{-x}(a x \cos x+b \sin x)$,$x \mathrm{e}^{-x}(a \cos x+b \sin x)$,D
+4,设A为n阶方阵， 且 $|A| \neq 0$， 则（）.,以上都不对,由AX=BA， 可得X=B,当$(A，E)$经有限次初等变换变为$(E，B)$时， 有$A^{-1}=B$,A经初等列变换可变为单位阵$E$,D
+5,阶行列式 $D_4=\left|\begin{array}{cccc}a_1 & 0 & 0 & b_1 \\ 0 & a_2 & b_2 & 0 \\ 0 & b_3 & a_3 & 0 \\ b_4 & 0 & 0 & a_4\end{array}\right|$ 的值等于 ( ).,$\left(a_1 a_2-b_1 b_2\right)\left(a_3 a_4-b_3 b_4\right)$;,$\left(a_2 a_3-b_2 b_3\right)\left(a_1 a_4-b_1 b_4\right)$.,$a_1 a_2 a_3 a_4+b_1 b_2 b_3 b_4$;,$a_1 a_2 a_3 a_4-b_1 b_2 b_3 b_4$;,B
+6,函数 $f(x)=\frac{x-x^3}{\sin \pi x}$ 的可去间断点个数为（）,2,无穷多个,1,3,D
+7,设 $A，B$ 为随机事件， $P(A)=P(B)=\frac{3}{4}$， 则 $P(A-B)=\frac{1}{4}$ 成立的一个充分条 件为 ( ),$A=B$,$A B=\varnothing$,$A， B$ 相互独立,$A \bigcup B=\Omega$,D
+8,设 $A，B$ 为n阶非零矩阵， 且AB=0$. 则A和B的秩,一个小于n，一个等于n,都小于n,都等于n,必有一个等于零,B
+9,具有特解 $y_1=e^{-x}， y_2=2xe^{-x}， y_3=3e^x$ 的三阶常系数齐次线性方程是 () .,$y'''-2y''-y'+2y=0$,$y'''+y''-y'-y=0$,$y'''-y''-y'+y=0$,$y'''-6y''+11y'-6y=0$,B
+10,设 $n$ 维向量组 ${\alpha}_1，{\alpha}_2，\cdots，{\alpha}_m(m<n)$ 线性无关， 则 $n$ 维列向量组 ${\beta}_1，{\beta}_2，\cdots，{\beta}_m$ 线性无关的充分必要条件为( ),向量组 ${\beta}_1，{\beta}_2，\cdots，{\beta}_m$ 可由向量组 ${\alpha}_1，{\alpha}_2，\cdots，{\alpha}_m$ 线性表示.,向量组 ${\alpha}_1，{\alpha}_2，\cdots，{\alpha}_m$ 与向量组 ${\beta}_1，{\beta}_2， \cdots， {\beta}_m$ 等价,矩阵 $A=({\alpha}_1，\cdots，{\alpha}_m)$ 与矩阵 $B=({\beta}_1，\cdots，{\beta}_m)$ 等价,向量组 ${\alpha}_1，{\alpha}_2，\cdots，{\alpha}_m$ 可由向量组 ${\beta}_1，{\beta}_2，\cdots，{\beta}_m$ 线性表示.,C
+11,将一枚硬币独立的掷两次， 引进事件: $A_1={第一次出现正面}， A_2={第二次出现正面}， A_3={正、反面各出现一次}， A_4={出现两次正面}， 则事件,$A_1， A_2， A_3$ 相互独立,$A_1， A_2， A_3$ 两两独立,$A_2， A_3， A_4$ 两两独立,$A_2， A_3， A_4$ 相互独立,B
+12,函数 $f(x， y)=\left\{\begin{array}{lc}0， & x y=0， \\ x \sin \frac{1}{x}+y \sin \frac{1}{x}， & x y \neq 0，\end{array}\right.$ 则极限 $\lim _{\substack{x \rightarrow 0 \\ y \rightarrow 0}} f(x， y)()$.,等于 1,等于 0,等于 2,不存在,B
+13,函数 $f(x)=x \sin x$.,在 $(-\infty，+\infty)$ 内有界,当 $x \rightarrow \infty$ 时极限存在,当 $x \rightarrow \infty$ 时为无穷大,在 $(-\infty，+\infty)$ 内无界,D
+14,微分方程 $y^{\prime}+\frac{1}{y} \mathrm{e}^{y^2+3 x}=0$ 的通解 (其中 $C$ 为任意常数) 是 ( ).,$\mathrm{e}^{3 x}-\mathrm{e}^{-y^2}=C$,$2 \mathrm{e}^{3 x}+3 \mathrm{e}^{-y^2}=C$,$2 \mathrm{e}^{3 x}+3 \mathrm{e}^{y^2}=C$,$2 \mathrm{e}^{3 x}-3 \mathrm{e}^{-y^2}=C$,D
+15,若 $f(x)$ 在开区间 $(a， b)$ 内可导， 且 $x_1， x_2$ 是 $(a， b)$ 内任意两点， 则至少存在一点 $\xi$，使下列诸式成立的是,$f\left(x_2\right)-f\left(x_1\right)=\left(x_2-x_1\right) f^{\prime}(\xi)， x_1<\xi<x_2$,$f\left(x_1\right)-f\left(x_2\right)=\left(x_2-x_1\right) f^{\prime}(\xi)， x_1<\xi<x_2$,$f\left(x_2\right)-f\left(x_1\right)=\left(x_1-x_2\right) f^{\prime}(\xi)， \xi \in(a， b)$,$f\left(x_1\right)-f\left(x_2\right)=\left(x_1-x_2\right) f^{\prime}(\xi)， \xi$ 在 $x_1， x_2$ 之间,D
+16,设函数 $f(x)=x \tan x e^{\sin x}$， 则 $f(x)$ 是,周期函数,无界函数,偶函数,单调函数,B

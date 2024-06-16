@@ -106,7 +106,7 @@ def get_calibrate_dataset(calibrate_name, tokenizer, nsamples, seqlen, dataset_p
         from mi_optimize.datasets import get_loader
         calibrate_data, _ = get_loader(tokenizer=tokenizer, nsamples=nsamples, dataset_name=calibrate_name, seqlen=seqlen, dataset_path_config=dataset_path_config)
 
-    elif calibrate_name in ['ceval', 'ceval_hm', 'ceval_st', 'ceval_ss']:
+    elif calibrate_name in ['ceval_all', 'ceval_hm', 'ceval_st', 'ceval_ss']:
         with open('./configs/ceval_calibration_config.yaml', 'r') as file:
             calibrate_config = yaml.safe_load(file)
             
@@ -117,15 +117,17 @@ def get_calibrate_dataset(calibrate_name, tokenizer, nsamples, seqlen, dataset_p
         from datasets.load_ceval import get_calibrate_ceval
         calibrate_data = get_calibrate_ceval(calibrate_name, calibration_split, calibrate_nums, answer=True, path=dataset_path_config['ceval_data_path'])
         
-    elif calibrate_name in ['cmmlu', 'cmmlu_hm', 'cmmlu_st', 'cmmlu_ss']:
+    elif calibrate_name in ['cmmlu_all', 'cmmlu_hm', 'cmmlu_st', 'cmmlu_ss']:
         from mi_optimize.datasets import get_calibrate_cmmlu
         with open('./configs/cmmlu_calibration_config.yaml', 'r') as file:
             calibrate_config = yaml.safe_load(file)
             
         logging.info("ceval calibration Config: %s", calibrate_config)
         calibration_split = calibrate_config['calibration_split']
+        calibrate_subs = calibrate_config[calibrate_name]['calibrate_subs']
         calibrate_nums = calibrate_config[calibrate_name]['calibrate_nums']
-        calibrate_data = get_calibrate_cmmlu(calibrate_name, calibration_split, calibrate_nums, answer=True, path=dataset_path_config['cmmlu_data_path'])
+        
+        calibrate_data = get_calibrate_cmmlu(subject=calibrate_subs, data_set=calibration_split, question=calibrate_nums, answer=True, path=dataset_path_config['cmmlu_data_path'])
     elif calibrate_name in ['QuestionAnswering_squad','QuestionAnswering_advqa','QuestionAnswering_newsqa','QuestionAnswering_searchqa',
                             'SentimentAnalysis_amazon','SentimentAnalysis_dynasent','SentimentAnalysis_semeval','SentimentAnalysis_sst5',
                             'NaturalLanguageInference_mnli','NaturalLanguageInference_anli','NaturalLanguageInference_wanli','NaturalLanguageInference_contractnli',

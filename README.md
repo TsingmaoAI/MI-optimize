@@ -349,7 +349,7 @@ Note: W/A Calib. represents the Weight and Activation calibration configuration 
 ## Cite
 If you found this work useful, please consider citing:
 ```
-@inproceedings{doe2021evaluating,
+@article{doe2024evaluating,
   title={Evaluating the Generalization Ability of Quantized LLMs: Benchmark, Analysis, and Toolbox},
   author={Fang Wu and Shenhao Peng and Chaoyu Guan and Hang Yao and Yijun Liu and Yuan Meng and Chen Tang and Xinzhu Ma and Zhi Wang and Wenwu Zhu},
   year={2024},

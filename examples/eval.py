@@ -2,8 +2,7 @@ import torch
 from mi_optimize import Benchmark
 from transformers import LlamaTokenizer, AutoModelForCausalLM
 
-# model_path = 'meta-llama/Llama-2-7b-hf'
-model_path = '/home/wf/models/Llama-2-7b-hf'
+model_path = 'meta-llama/Llama-2-7b-hf'
 quantize_model_path = 'llama-2-7b-quant.pth'
 # Load Benchmark
 benchmark = Benchmark()
