@@ -107,7 +107,7 @@ quant_path = 'llama-2-7b-quant.pth'
 quant_config = {
     "algo": "rtn",
     "kwargs": {'w_dtype': "int8", 'a_dtype': "int8"},
-    "calibrate_name": "cmmlu"  # select from  ['wikitext2', 'c4', 'ptb', 'cmmlu_all', 'ceval_all'] 
+    "calibrate_name": "cmmlu"  # select from  ['wikitext2', 'c4', 'ptb', 'cmmlu_all'] 
  }
 
 # Load the pre-trained Hugging Face model
