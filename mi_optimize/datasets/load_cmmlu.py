@@ -148,9 +148,14 @@ def get_cmmlu(subject='all', data_set='test', question=4, shuffle=False, seed=42
             
     return CMMLU_question_list
 
-def get_calibrate_cmmlu(subject='all', data_set='test', question=4, shuffle=False, seed=42, answer=False, path=None):
-    return get_cmmlu(subject=subject, data_set=data_set, question=question, shuffle=shuffle, seed=seed, answer=answer, path=path)
-
+def get_calibrate_cmmlu(tokenizer, subject='all', data_set='test', question=4, shuffle=False, seed=42, answer=False, path=None):
+    calibrate_data =  get_cmmlu(subject=subject, data_set=data_set, question=question, shuffle=shuffle, seed=seed, answer=answer, path=path)
+    inputs_ids = []
+    for data in calibrate_data:
+        input_ids = tokenizer.encode(data, return_tensors='pt')
+        inputs_ids.append(input_ids)
+    return inputs_ids
+        
 def get_testdata_cmmlu(subject='all', data_set='test', question='all', shuffle=False, seed=42, answer=True, path=None):
     CMMLU_question_list = get_cmmlu(subject=subject, data_set=data_set, question=question, shuffle=shuffle, seed=seed, answer=answer, path=path)
     

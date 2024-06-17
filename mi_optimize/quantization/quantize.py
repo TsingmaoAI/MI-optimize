@@ -29,7 +29,7 @@ def quantize(model, tokenizer, quant_config):
     calibrate_name = config['calibrate_name']
     logging.info(f"calibrate_name: {calibrate_name}")
     
-    calibrate_data = get_calibrate_dataset(calibrate_name=calibrate_name, tokenizer=tokenizer, nsamples=kwargs['num_calibrate'], seqlen=kwargs['calibrate_seq_length'], dataset_path_config=dataset_path_config)
+    calibrate_data = get_calibrate_dataset(tokenizer=tokenizer, calibrate_name=calibrate_name, nsamples=kwargs['num_calibrate'], seqlen=kwargs['calibrate_seq_length'], dataset_path_config=dataset_path_config)
     
     if model_type == 'llama':
         from mi_optimize.quantization.models.llama_seq import llama_sequential

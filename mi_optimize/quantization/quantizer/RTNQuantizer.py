@@ -51,7 +51,7 @@ class LinearRTNQuantizer(BaseQuantizer):
                     scales, zero_points = self.a_quantizer.find_params(x_min=x.min(), x_max=x.max())
                     self.a_scale = scales
                     self.a_zero_point = zero_points
-                    del scales, zero_points, x
+                    del scales, zero_points, x, self.quant_hub_linear.core.input_tracks
                 else:
                     logging.info('just a_qtype is per_tensor support static quantize')
             elif self.quantization_type == 'dynamic':

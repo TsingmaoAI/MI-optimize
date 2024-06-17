@@ -13,7 +13,7 @@ def main(args):
     quant_config = {
         "algo": "rtn",
         "kwargs": {'w_dtype': "int8", 'a_dtype': "int8"},
-        "calibrate_name": "cmmlu_all"  # select from  ['wikitext2', 'c4', 'ptb', 'cmmlu_all', 'cmmlu_hm', 'cmmlu_st', 'cmmlu_ss', 'NaturalLanguageInference_mnli']
+        "calibrate_name": "ceval_all"  # select from  ['wikitext2', 'c4', 'ptb', 'cmmlu_all', 'cmmlu_hm', 'cmmlu_st', 'cmmlu_ss']
     }
 
     # Load the pre-trained Hugging Face model
@@ -23,14 +23,11 @@ def main(args):
     # Quantize the model
     model = quantize(model=model, tokenizer=tokenizer, quant_config=quant_config)
 
-    print(model)
-    model = model.cuda()
-
     input_text = "Llama is a large language model"
 
     input_ids = tokenizer.encode(input_text, return_tensors="pt").to(model.device)
 
-    output = model.generate(input_ids, max_length=100, num_return_sequences=1, do_sample= False)
+    output = model.generate(input_ids)
 
     decoded_output = tokenizer.decode(output[0], skip_special_tokens=True)
     print(decoded_output)

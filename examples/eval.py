@@ -9,8 +9,8 @@ benchmark = Benchmark()
 
 # Load Model && tokenizer
 tokenizer = LlamaTokenizer.from_pretrained(model_path)
-# model = AutoModelForCausalLM.from_pretrained(model_path, trust_remote_code=True).half().cuda()
-model = torch.load(quantize_model_path)
+model = AutoModelForCausalLM.from_pretrained(model_path, trust_remote_code=True).half().cuda()
+# model = torch.load(quantize_model_path)
 
 model = model.eval()
 

@@ -121,14 +121,20 @@ def load_ceval(subjects, data_set, path="ceval/ceval-exam"):
 
     datasets = {}
     for sub in subjects:
+        print('sub', sub, 'path', path)
         datasets[sub] = load_dataset(path=path, name=sub)
+        exit()
         datasets[sub] = datasets[sub][data_set]
 
     return datasets
 
-def get_calibrate_ceval(subject='all', data_set='test', question=4, shuffle=False, seed=42, answer=False, path=None):
-    return get_ceval(subject=subject, data_set=data_set, question=question, shuffle=shuffle, seed=seed, answer=answer, path=path)
-    
+def get_calibrate_ceval(tokenizer, subject='all', data_set='test', question=4, shuffle=False, seed=42, answer=False, path=None):
+    calibrate_data = get_ceval(subject=subject, data_set=data_set, question=question, shuffle=shuffle, seed=seed, answer=answer, path=path)
+    inputs_ids = []
+    for data in calibrate_data:
+        input_ids = tokenizer.encode(data, return_tensors='pt')
+        inputs_ids.append(input_ids)
+    return inputs_ids
 
 def get_ceval(subject='all', data_set='test', question=4, shuffle=False, seed=42, answer=False, path=None):
     """
@@ -145,8 +151,8 @@ def get_ceval(subject='all', data_set='test', question=4, shuffle=False, seed=42
         subjects = [key for key, value in TASK2CTG.items() if value == subject]
     else:
         subjects = subject
-
-    ceval_data = load_ceval( subjects=subjects, data_set=data_set, path=path)
+    print('subjj', subjects)
+    ceval_data = load_ceval(subjects=subjects, data_set=data_set, path=path)
     ceval_question_list = []
     for subject_name in ceval_data:
         subject_data = ceval_data[subject_name]

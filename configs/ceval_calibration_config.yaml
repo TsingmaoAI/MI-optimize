@@ -1,49 +1,54 @@
-calibration_split: 'val'
-ceval:
+calibration_split: 'test'
+ceval_all:
+  calibrate_subs: all
   calibrate_nums: 4
 ceval_hm:
-  modern_chinese_history: 11
-  ideological_and_moral_cultivation: 12
-  logic: 12
-  law: 11
-  chinese_language_and_literature: 12
-  art_studies: 12
-  professional_tour_guide: 11
-  legal_professional: 11
-  high_school_chinese: 12
-  high_school_history: 12
-  middle_school_history: 12
+  calibrate_subs: Humanities
+  calibrate_nums:
+    modern_chinese_history: 11
+    ideological_and_moral_cultivation: 12
+    logic: 12
+    law: 11
+    chinese_language_and_literature: 12
+    art_studies: 12
+    professional_tour_guide: 11
+    legal_professional: 11
+    high_school_chinese: 12
+    high_school_history: 12
+    middle_school_history: 12
 ceval_st:
-  computer_network: 6
-  operating_system: 6
-  computer_architecture: 6
-  college_programming: 6
-  college_physics: 6
-  college_chemistry: 6
-  advanced_mathematics: 6
-  probability_and_statistics: 6
-  discrete_mathematics: 6
-  electrical_engineer: 6
-  metrology_engineer: 6
-  high_school_mathematics: 6
-  high_school_physics: 7
-  high_school_chemistry: 7
-  high_school_biology: 7
-  middle_school_mathematics: 7
-  middle_school_biology: 7
-  middle_school_physics: 7
-  middle_school_chemistry: 7
-  veterinary_medicine: 7
+  calibrate_subs: STEM
+  calibrate_nums:
+    computer_network: 6
+    operating_system: 6
+    computer_architecture: 6
+    college_programming: 6
+    college_physics: 6
+    college_chemistry: 6
+    advanced_mathematics: 6
+    probability_and_statistics: 6
+    discrete_mathematics: 6
+    electrical_engineer: 6
+    metrology_engineer: 6
+    high_school_mathematics: 6
+    high_school_physics: 7
+    high_school_chemistry: 7
+    high_school_biology: 7
+    middle_school_mathematics: 7
+    middle_school_biology: 7
+    middle_school_physics: 7
+    middle_school_chemistry: 7
+    veterinary_medicine: 7
 ceval_ss:
-  college_economics: 13
-  business_administration: 13
-  marxism: 13
-  mao_zedong_thought: 12
-  education_science: 13
-  teacher_qualification: 13
-  high_school_politics: 13
-  high_school_geography: 13
-  middle_school_politics: 13
-  middle_school_geography: 12
-
-ceval_data_path: 'datasets/ceval-exam'
+  calibrate_subs: Social Science
+  calibrate_nums:
+    college_economics: 13
+    business_administration: 13
+    marxism: 13
+    mao_zedong_thought: 12
+    education_science: 13
+    teacher_qualification: 13
+    high_school_politics: 13
+    high_school_geography: 13
+    middle_school_politics: 13
+    middle_school_geography: 12
