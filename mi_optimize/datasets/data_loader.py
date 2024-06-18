@@ -41,8 +41,8 @@ def get_wikitext2(tokenizer, nsamples=128, seqlen=2048, seed=42, dataset_path_co
 
 def get_c4(tokenizer, nsamples=128, seqlen=2048, seed=42, dataset_path_config=[]):
     print("get_c4")
-    traindata = load_dataset(path=dataset_path_config['c4_data_path'], name='default', data_files={'train': 'c4-train.00000-of-01024.json.gz'}, split='train')
-    valdata = load_dataset(path=dataset_path_config['c4_data_path'], name='default', data_files={'validation': 'c4-validation.00000-of-00008.json.gz'}, split='validation')
+    traindata = load_dataset(dataset_path_config['c4_data_path'], name='default', data_files={'train': 'en/c4-train.00000-of-01024.json.gz'}, split='train')
+    valdata = load_dataset(dataset_path_config['c4_data_path'], name='default', data_files={'validation': 'en/c4-validation.00000-of-00008.json.gz'}, split='validation')
     
     random.seed(seed)
     trainloader = []
@@ -114,7 +114,7 @@ def get_calibrate_dataset(calibrate_name, tokenizer, nsamples, seqlen, dataset_p
         calibration_split = calibrate_config['calibration_split']
         calibrate_subs = calibrate_config[calibrate_name]['calibrate_subs']
         calibrate_nums = calibrate_config[calibrate_name]['calibrate_nums']
-        logging.info(f"cmmlu calibration subject is {calibrate_subs} and calibrate nums is {calibrate_nums}")
+        logging.info(f"ceval calibration subject is {calibrate_subs} and calibrate nums is {calibrate_nums}")
         calibrate_data = get_calibrate_ceval(tokenizer=tokenizer, subject=calibrate_subs, data_set=calibration_split, question=calibrate_nums, answer=True, path=dataset_path_config['ceval_data_path'])
         
     elif calibrate_name in ['cmmlu_all', 'cmmlu_hm', 'cmmlu_st', 'cmmlu_ss']:
@@ -132,12 +132,11 @@ def get_calibrate_dataset(calibrate_name, tokenizer, nsamples, seqlen, dataset_p
                             'SentimentAnalysis_amazon','SentimentAnalysis_dynasent','SentimentAnalysis_semeval','SentimentAnalysis_sst5',
                             'NaturalLanguageInference_mnli','NaturalLanguageInference_anli','NaturalLanguageInference_wanli','NaturalLanguageInference_contractnli',
                             'ToxicDetection_civilcomments','ToxicDetection_advcivil','ToxicDetection_implicithate','ToxicDetection_toxigen']: 
-        from datasets.load_boss import get_calibrate_boss
+        from mi_optimize.datasets import get_calibrate_boss
         calibrate_dataset = calibrate_name.split("_")
         calibrate_task_name = calibrate_dataset[0]
         calibrate_dataset_name = calibrate_dataset[1]
-
-        calibrate_data = get_calibrate_boss(calibrate_task_name, calibrate_dataset_name, nsamples=208, split='train', shuffle=False, seed=42)
+        calibrate_data = get_calibrate_boss(tokenizer=tokenizer, task_name=calibrate_task_name, dataset_name=calibrate_dataset_name, calibrate_num=nsamples)
     else:
         raise ValueError(f'not support {calibrate_name}')
 

@@ -9,14 +9,14 @@ from itertools import islice
 from click import prompt
 from collections import Counter
 
-def get_BOSS(task_name,dataset_name,split,shuffle=False, seed=42):
+def get_boss(task_name,dataset_name,split,shuffle=False, seed=42):
     SA_label_mapping = {"0":"negative", "1":"positive", "2":"neutral"}
     NLI_label_mapping = {"0":"entailment", "1":"neutral","2":"contradiction" }
     TD_label_mapping = {"0":"benign","1":"toxic"}
     with open("./configs/datasets_path.yaml") as file:
         dataset_path_config = yaml.safe_load(file)
     boss_data_path = dataset_path_config['boss_data_path']
-    data_dir = f"{boss_data_path}{task_name}/{dataset_name}"
+    data_dir = f"{boss_data_path}/{task_name}/{dataset_name}"
     if task_name == "QuestionAnswering":
         examples = []
         with open(os.path.join(data_dir, f"{split}.json"),'r') as f:
@@ -73,7 +73,7 @@ def get_str(task_name, dataset_name, nsamples=208, split='train', shuffle=False,
 
     question_list = []
     if task_name == "QuestionAnswering": 
-        examples = get_BOSS(task_name,dataset_name,split=split,shuffle=shuffle,seed=seed)
+        examples = get_boss(task_name,dataset_name,split=split,shuffle=shuffle,seed=seed)
         question_num = nsamples if nsamples < len(examples) else len(examples)
         for example in islice(examples, question_num):
             title_str = example['title']
@@ -84,7 +84,7 @@ def get_str(task_name, dataset_name, nsamples=208, split='train', shuffle=False,
             question_list.append(question_str)
 
     elif task_name == "SentimentAnalysis":
-        examples = get_BOSS(task_name,dataset_name,split=split,shuffle=shuffle,seed=seed)
+        examples = get_boss(task_name,dataset_name,split=split,shuffle=shuffle,seed=seed)
         question_num = nsamples if nsamples < len(examples) else len(examples)
         for example in islice(examples,question_num):
             context = example["context"]
@@ -93,7 +93,7 @@ def get_str(task_name, dataset_name, nsamples=208, split='train', shuffle=False,
             question_list.append(question_str)
     
     elif task_name == "NaturalLanguageInference":
-        examples = get_BOSS(task_name,dataset_name,split=split,shuffle=shuffle,seed=seed)
+        examples = get_boss(task_name,dataset_name,split=split,shuffle=shuffle,seed=seed)
         question_num = nsamples if nsamples < len(examples) else len(examples)
         for example in islice(examples,question_num):
             premise = example['premise']
@@ -103,7 +103,7 @@ def get_str(task_name, dataset_name, nsamples=208, split='train', shuffle=False,
             question_list.append(question_str)
     
     elif task_name == "ToxicDetection":
-        examples = get_BOSS(task_name,dataset_name,split=split,shuffle=shuffle,seed=seed)
+        examples = get_boss(task_name,dataset_name,split=split,shuffle=shuffle,seed=seed)
         question_num = nsamples if nsamples < len(examples) else len(examples)
         for example in islice(examples,question_num):
             context = example["context"]
@@ -118,11 +118,15 @@ def get_str(task_name, dataset_name, nsamples=208, split='train', shuffle=False,
 
 
 
-def get_calibrate_BOSS(task_name, dataset_name, calibrate_num=128, split='train', shuffle=False, seed=42):#校准集是否需要空行
-    return get_str(task_name, dataset_name,calibrate_num,split,shuffle,seed)
+def get_calibrate_boss(tokenizer, task_name, dataset_name, calibrate_num=128, split='train', shuffle=False, seed=42):
+    calibrate_data = get_str(task_name, dataset_name,calibrate_num,split,shuffle,seed)
+    inputs_ids = []
+    for data in calibrate_data:
+        input_ids = tokenizer.encode(data, return_tensors='pt')
+        inputs_ids.append(input_ids)
+    return inputs_ids
 
-
-def get_fewshot_BOSS(task_name, dataset_name,fewshot_num,split='test',answer=True,max_length=1024,shuffle=False,seed=42):#few_shot要不要直接指定好，或者是从小的数据集中得到，可以加快速度
+def get_fewshot_boss(task_name, dataset_name, fewshot_num, split='test', answer=True, max_length=1024, shuffle=False, seed=42):
 
     if task_name == "QuestionAnswering": 
         prompt = f"### Instruction ###\n\
@@ -233,7 +237,7 @@ Text: If somebody has a physical disability they are unpredictable and should no
 
     return prompt
 
-def get_zeroshot_BOSS(task_name, dataset_name):
+def get_zeroshot_boss(task_name, dataset_name):
     if task_name == "QuestionAnswering":
         prompt = f"### Instruction ###\n\
 Solve the extractive question answering task. Refering to the passage below and extract answer for the question. The answer should be the shortest phrase as it can be.\n\
@@ -267,32 +271,32 @@ Text: {{Text}} // Prediction: {{Prediction}}\n\
 
     return prompt
 
-def get_testdata_BOSS(task_name, dataset_name, split, model_name='llama', answer=True, shuffle=False, seed=42):
+def get_testdata_boss(task_name, dataset_name, split, model_name='llama', answer=True, shuffle=False, seed=42):
     question_list = []
     answer_list = []
     if task_name == "QuestionAnswering": 
-        qa_data = get_BOSS(task_name, dataset_name,split=split,shuffle=shuffle,seed=seed)
+        qa_data = get_boss(task_name, dataset_name,split=split,shuffle=shuffle,seed=seed)
         for data in qa_data:
-            question = f"Passage: {data['context']} // Question: {data['question']} // Answer:"#好像之前预测里没有空格，会有影响吗（因为最大输出位5会占一个空格）
+            question = f"Passage: {data['context']} // Question: {data['question']} // Answer:"
             question_list.append(question)
             answer_list.append(data['answers'])
 
     elif task_name == "SentimentAnalysis":
-        examples = get_BOSS(task_name,dataset_name,split=split,shuffle=shuffle,seed=seed)
+        examples = get_boss(task_name,dataset_name,split=split,shuffle=shuffle,seed=seed)
         for example in examples:
             question = f"Text: {example['context']} // Prediction:"
             question_list.append(question)
             answer_list.append(example['answer'])
 
     elif task_name == "NaturalLanguageInference":
-        examples = get_BOSS(task_name,dataset_name,split=split,shuffle=shuffle,seed=seed)
+        examples = get_boss(task_name,dataset_name,split=split,shuffle=shuffle,seed=seed)
         for example in examples:
             question = f"Premise: {example['premise']} // Hypothesis: {example['hypothesis']} // prediction:"
             question_list.append(question)
-            answer_list.append(example['label']) #此处论文是如何处理的？应该怎么读取问题不重要，有影响的知识比较label和prediction
+            answer_list.append(example['label']) 
     
     elif task_name == "ToxicDetection":
-        examples = get_BOSS(task_name,dataset_name,split=split,shuffle=shuffle,seed=seed)
+        examples = get_boss(task_name,dataset_name,split=split,shuffle=shuffle,seed=seed)
         for example in examples:
             question = f"Text: {example['context']} // Prediction:"
             question_list.append(question)

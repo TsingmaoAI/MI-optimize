@@ -1,4 +1,4 @@
-calibration_split: 'dev'
+calibration_split: 'val'
 cmmlu_all:
   calibrate_subs: all
   calibrate_nums: 4

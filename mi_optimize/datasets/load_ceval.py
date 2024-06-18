@@ -121,9 +121,7 @@ def load_ceval(subjects, data_set, path="ceval/ceval-exam"):
 
     datasets = {}
     for sub in subjects:
-        print('sub', sub, 'path', path)
         datasets[sub] = load_dataset(path=path, name=sub)
-        exit()
         datasets[sub] = datasets[sub][data_set]
 
     return datasets
@@ -151,7 +149,6 @@ def get_ceval(subject='all', data_set='test', question=4, shuffle=False, seed=42
         subjects = [key for key, value in TASK2CTG.items() if value == subject]
     else:
         subjects = subject
-    print('subjj', subjects)
     ceval_data = load_ceval(subjects=subjects, data_set=data_set, path=path)
     ceval_question_list = []
     for subject_name in ceval_data:

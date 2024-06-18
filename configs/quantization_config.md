@@ -26,8 +26,12 @@ These parameters are shared across different quantization algorithms:
   - `cmmlu_hm`
   - `cmmlu_st`
   - `cmmlu_ss`
-  - `QuestionAnswering_squad`
+  - `ceval_all`
+  - `ceval_hm`
+  - `ceval_st`
+  - `ceval_ss`
   - `QuestionAnswering_advqa`
+  - `QuestionAnswering_squad`
   - `QuestionAnswering_newsqa`
   - `QuestionAnswering_searchqa`
   - `SentimentAnalysis_amazon`

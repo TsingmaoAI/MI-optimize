@@ -52,12 +52,12 @@ class Benchmark:
 
         return results
     
-    def eval_ceval(self, model, tokenizer, model_type='baichuan', subject='all', num_shot=0):
+    def eval_ceval(self, model, tokenizer, model_type='baichuan', subject='all', data_set='val',num_shot=0):
         results = {}
         from mi_optimize.datasets.load_ceval import get_subjects_ceval, get_testdaset_ceval, get_fewshot_ceval, extract_cot_answer_ceval
         subject_dict = get_subjects_ceval(subject)
-        for subject in subject_dict:
-            question_list, answer_list = get_testdaset_ceval(subject=[subject], data_set='val', path=dataset_config['ceval_data_path'])
+        for subject in tqdm(subject_dict):
+            question_list, answer_list = get_testdaset_ceval(subject=[subject], data_set=data_set, path=dataset_config['ceval_data_path'])
             count = 0
             correct = 0
             for question, answer in zip(question_list, answer_list):
@@ -73,9 +73,10 @@ class Benchmark:
 
                 elif model_type=='baichuan' or model_type=='llama':
                     question = question_prompt + "\n\n" + question
-                    input_ids = tokenizer.encode(question, return_tensors='pt').to(model.device)
-                        
-                    output = model.generate(input_ids, max_new_tokens=1, return_dict_in_generate=True, output_scores=True, temperature=0.1, top_p=0.5, repetition_penalty=1.1)
+                    inputs = tokenizer(question, return_tensors='pt')
+                    input_ids = inputs['input_ids'].to(model.device)
+                    attention_mask = inputs['attention_mask'].to(model.device)
+                    output = model.generate(input_ids, attention_mask=attention_mask, max_new_tokens=1, return_dict_in_generate=True, output_scores=True, temperature=0.8, top_p=0.95, pad_token_id=tokenizer.eos_token_id)
 
                     scores = output.scores[0][0].to(torch.float32)
                     label_score = []
@@ -99,12 +100,12 @@ class Benchmark:
         
         return results
     
-    def eval_cmmlu(self, model, tokenizer, model_type='baichuan', subject='all', num_shot=0):
+    def eval_cmmlu(self, model, tokenizer, model_type='baichuan', subject='all', data_set='test', num_shot=0):
         results = {}
         from mi_optimize.datasets.load_cmmlu import get_subjects_cmmlu, get_testdata_cmmlu, get_fewshot_cmmlu, extract_cot_answer_cmmlu
         subject_dict = get_subjects_cmmlu(subject)
-        for subject in subject_dict:
-            question_list, answer_list = get_testdata_cmmlu(subject=[subject], data_set='test', path=dataset_config['cmmlu_data_path'])
+        for subject in tqdm(subject_dict):
+            question_list, answer_list = get_testdata_cmmlu(subject=[subject], data_set=data_set, path=dataset_config['cmmlu_data_path'])
             count = 0
             correct = 0
             for question, answer in zip(question_list, answer_list):
@@ -120,8 +121,10 @@ class Benchmark:
 
                 elif model_type=='baichuan' or model_type=='llama':
                     question = question_prompt + "\n\n" + question
-                    input_ids = tokenizer.encode(question, return_tensors='pt').to(model.device)
-                    output = model.generate(input_ids, max_new_tokens=1, return_dict_in_generate=True, output_scores=True, temperature=0.1, top_p=0.5, repetition_penalty=1.1)
+                    inputs = tokenizer(question, return_tensors='pt')
+                    input_ids = inputs['input_ids'].to(model.device)
+                    attention_mask = inputs['attention_mask'].to(model.device)
+                    output = model.generate(input_ids, attention_mask=attention_mask, max_new_tokens=1, return_dict_in_generate=True, output_scores=True, temperature=0.1, top_p=0.5, repetition_penalty=1.1, pad_token_id=tokenizer.eos_token_id)
                     
                     scores = output.scores[0][0].to(torch.float32)
                     label_score = []
@@ -149,8 +152,8 @@ class Benchmark:
         return results
 
     def eval_boss(self, model, tokenizer, test_dataset, split='test', ICL_split='test', num_shot=0):
-        from mi_optimize.datasets.load_boss import get_BOSS,get_str,get_calibrate_BOSS,get_fewshot_BOSS,get_zeroshot_BOSS,get_testdata_BOSS
-        from benchmark.boss.metrics import normalize_answer,f1_score,exact_match_score,metric_max_over_ground_truths,compute_metric
+        from mi_optimize.datasets.load_boss import get_fewshot_boss, get_zeroshot_boss, get_testdata_boss
+        from benchmark.boss.metrics import compute_metric
         MAX_TOKENS = {
         "SentimentAnalysis": 2,
         "ToxicDetection": 1,
@@ -158,7 +161,7 @@ class Benchmark:
         "NameEntityRecognition": 50,
         "QuestionAnswering": 5}
 
-        logging.info("Evaluating the model on the BOSS benchmark")
+        logging.info("Evaluating the model on the boss benchmark")
 
         generator = pipeline(task="text-generation",
                      model=model,
@@ -169,19 +172,18 @@ class Benchmark:
         test_dataset = test_dataset.split("_")
         task_name = test_dataset[0]
         dataset_name = test_dataset[1]
-        question_list, answer_list = get_testdata_BOSS(task_name, dataset_name, split=split)
+        question_list, answer_list = get_testdata_boss(task_name, dataset_name, split=split)
 
         if num_shot:         
-            question_prompt = get_fewshot_BOSS(task_name, dataset_name, num_shot, ICL_split)
+            question_prompt = get_fewshot_boss(task_name, dataset_name, num_shot, ICL_split)
         else:
-            question_prompt = get_zeroshot_BOSS(task_name, dataset_name)
+            question_prompt = get_zeroshot_boss(task_name, dataset_name)
 
         prediction_list = []
-        for question in question_list:
+        for question in tqdm(question_list):
             question = question_prompt + question
-        
             output = generator(question, num_return_sequences=1, return_full_text=False, handle_long_generation="hole",
-                               temperature=0, max_new_tokens=MAX_TOKENS[task_name], do_sample=False)
+                               temperature=0, max_new_tokens=MAX_TOKENS[task_name], do_sample=False, pad_token_id=tokenizer.eos_token_id)
             output = output[0]["generated_text"].strip("\n").strip()
 
             # print("question:",question)

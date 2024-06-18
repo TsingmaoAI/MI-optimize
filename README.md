@@ -88,7 +88,10 @@ pip install mi_optimize
 Choose either method to complete the installation.
 
 ## Usage
-
+### Quick start
+```
+python examples/quantize_eval.py --model-path {path_to_model} --eval-ppl
+```
 ### Quantization 
 Below is an example of how to set up the quantization process for a model. For detailed information on all available quantization configuration options, please refer to the [quantization configuration guide](configs/quantization_config.md).
 ```
@@ -118,20 +121,16 @@ tokenizer = LlamaTokenizer.from_pretrained(model_path)
 model = quantize(model=model, tokenizer=tokenizer, quant_config=quant_config)
 
 print(model)
-model = model.cuda()
+model.cuda()
 
 input_text = "Llama is a large language model"
 
 input_ids = tokenizer.encode(input_text, return_tensors="pt").to(model.device)
 
-output = model.generate(input_ids, max_length=100, num_return_sequences=1, do_sample= False)
+output = model.generate(input_ids, num_return_sequences=1)
 
 decoded_output = tokenizer.decode(output[0], skip_special_tokens=True)
 print(decoded_output)
-
-# Save the quantized model
-model = export_module(model)
-torch.save(model, quant_path)
 
 # Save the quantized model
 model = export_module(model)

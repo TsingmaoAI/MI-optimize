@@ -1,11 +1,10 @@
-# Import necessary libraries
 import torch
+import time
 from transformers import AutoModelForCausalLM, LlamaTokenizer
 from mi_optimize import quantize
 from mi_optimize.export import export_module
 
 def main(args):
-
     # Define paths for the pre-trained model and quantized model
     model_path = args.model_path
     quant_path = args.quant_path
@@ -13,7 +12,7 @@ def main(args):
     quant_config = {
         "algo": "rtn",
         "kwargs": {'w_dtype': "int8", 'a_dtype': "int8"},
-        "calibrate_name": "ceval_all"  # select from  ['wikitext2', 'c4', 'ptb', 'cmmlu_all', 'cmmlu_hm', 'cmmlu_st', 'cmmlu_ss']
+        "calibrate_name": "QuestionAnswering_advqa"  # select from  ['wikitext2', 'c4', 'ptb', 'cmmlu_all', 'cmmlu_hm', 'cmmlu_st', 'cmmlu_ss']
     }
 
     # Load the pre-trained Hugging Face model
@@ -21,20 +20,21 @@ def main(args):
     tokenizer = LlamaTokenizer.from_pretrained(model_path)
 
     # Quantize the model
-    model = quantize(model=model, tokenizer=tokenizer, quant_config=quant_config)
-
+    trick = time.time()
+    quant_model = quantize(model=model, tokenizer=tokenizer, quant_config=quant_config)
+    print(f'quantize time is {time.time()-trick}')
     input_text = "Llama is a large language model"
 
     input_ids = tokenizer.encode(input_text, return_tensors="pt").to(model.device)
 
-    output = model.generate(input_ids)
+    output = quant_model.generate(input_ids)
 
     decoded_output = tokenizer.decode(output[0], skip_special_tokens=True)
     print(decoded_output)
 
     # Save the quantized model
-    model = export_module(model)
-    torch.save(model, quant_path)
+    quant_model = export_module(quant_model)
+    torch.save(quant_model, quant_path)
 
 if __name__ =='__main__':
     import argparse
