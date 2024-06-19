@@ -1,17 +1,16 @@
 import logging
 import torch
-import yaml
 import numpy as np
 import collections
 from tqdm import tqdm
 
-from mi_optimize.datasets.data_loader import get_loader
+from mi_optimize.datasets import get_wikitext2, get_ptb, get_c4
+from mi_optimize.datasets.load_ceval import get_subjects_ceval, get_testdaset_ceval, get_fewshot_ceval, extract_cot_answer_ceval
+from mi_optimize.datasets.load_cmmlu import get_subjects_cmmlu, get_testdata_cmmlu, get_fewshot_cmmlu, extract_cot_answer_cmmlu
+from mi_optimize.datasets.load_boss import get_fewshot_boss, get_zeroshot_boss, get_testdata_boss
+from benchmark.boss.metrics import compute_metric
 from transformers import pipeline
 
-# Config for Log and Dataset path
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-with open("configs/datasets_path.yaml") as file:
-    dataset_config = yaml.safe_load(file)
 
 class Benchmark:
     def __init__(self):
@@ -21,43 +20,59 @@ class Benchmark:
     def compute_ppl(self, model, tokenizer, loader):
         total_loss = 0
         total_count = 0
-        with torch.no_grad():
-            for batch in tqdm(loader):
-                batch = batch.clone()
-                if batch.shape[1] <= 1: continue
-                input_ids = batch.to(model.device)
-                outputs = model(input_ids, labels=input_ids)
-                loss = outputs.loss
-                if tokenizer.pad_token_id is not None:
-                    
-                    count = input_ids.ne(tokenizer.pad_token_id).ne(-100).sum().item()
-                else:
-                    count = input_ids.ne(-100).sum().item()
-                total_loss += loss.item() * count
-                total_count += count
+        for batch in tqdm(loader):
+            batch = batch.clone()
+            if batch.shape[1] <= 1: continue
+            input_ids = batch.to(model.device)
+            outputs = model(input_ids, labels=input_ids)
+            loss = outputs.loss
+            if tokenizer.pad_token_id is not None:
+                
+                count = input_ids.ne(tokenizer.pad_token_id).ne(-100).sum().item()
+            else:
+                count = input_ids.ne(-100).sum().item()
+            total_loss += loss.item() * count
+            total_count += count
                 
         return np.exp(total_loss / total_count)
-
-    def eval_ppl(self, model, tokenizer, test_dataset):
-        logging.info("Evaluating Perplexity (PPL) on the dataset")
-        
+    
+    def eval_wiki2_ppl(self, model, tokenizer, nsamples='all', split='test'):
+        logging.info("Evaluating Perplexity (PPL) on the wikitext2")
+        dataloader = get_wikitext2(tokenizer, nsamples=nsamples, split=split)
+        ppl = self.compute_ppl(model, tokenizer, dataloader)
+        logging.info(f'wikitext2 PPL {ppl}')
+        return ppl
+    
+    def eval_ptb_ppl(self, model, tokenizer, nsamples='all', split='test'):
+        logging.info("Evaluating Perplexity (PPL) on the ptb")
+        dataloader = get_ptb(tokenizer, nsamples=nsamples, split=split)
+        ppl = self.compute_ppl(model, tokenizer, dataloader)
+        logging.info(f'ptb PPL {ppl}')
+        return ppl
+    
+    def eval_c4_ppl(self, model, tokenizer, nsamples='all', split='validation'):
+        logging.info("Evaluating Perplexity (PPL) on the c4")
+        dataloader = get_c4(tokenizer, nsamples=nsamples, split=split)
+        ppl = self.compute_ppl(model, tokenizer, dataloader)
+        logging.info(f'c4 PPL {ppl}')
+        return ppl
+    
+    def eval_ppl(self, model, tokenizer, nsamples='all'):
+        logging.info("Evaluating Perplexity (PPL) on the wikitext2, c4, ptb dataset")
         results = {}
-        for dataset in test_dataset:
-            # seqlen = 2048
-            dataloader, testloader = get_loader(dataset, tokenizer=tokenizer, seqlen=2048, dataset_path_config=dataset_config)
-            ppl = self.compute_ppl(model, tokenizer, testloader)
-            logging.info(f"dataset {testloader}")
-            logging.info(f'PPL {ppl}')
-            results[dataset] = ppl
-
+        wiki2_ppl = self.eval_wiki2_ppl(model, tokenizer, nsamples=nsamples)
+        ptb_ppl = self.eval_ptb_ppl(model, tokenizer, nsamples=nsamples)
+        c4_ppl = self.eval_c4_ppl(model, tokenizer, nsamples=nsamples)
+        results['wikitext_ppl'] = wiki2_ppl
+        results['ptb_ppl'] = ptb_ppl
+        results['c4_ppl'] = c4_ppl
         return results
     
     def eval_ceval(self, model, tokenizer, model_type='baichuan', subject='all', data_set='val',num_shot=0):
         results = {}
-        from mi_optimize.datasets.load_ceval import get_subjects_ceval, get_testdaset_ceval, get_fewshot_ceval, extract_cot_answer_ceval
         subject_dict = get_subjects_ceval(subject)
         for subject in tqdm(subject_dict):
-            question_list, answer_list = get_testdaset_ceval(subject=[subject], data_set=data_set, path=dataset_config['ceval_data_path'])
+            question_list, answer_list = get_testdaset_ceval(subject=[subject], data_set=data_set)
             count = 0
             correct = 0
             for question, answer in zip(question_list, answer_list):
@@ -102,10 +117,9 @@ class Benchmark:
     
     def eval_cmmlu(self, model, tokenizer, model_type='baichuan', subject='all', data_set='test', num_shot=0):
         results = {}
-        from mi_optimize.datasets.load_cmmlu import get_subjects_cmmlu, get_testdata_cmmlu, get_fewshot_cmmlu, extract_cot_answer_cmmlu
         subject_dict = get_subjects_cmmlu(subject)
         for subject in tqdm(subject_dict):
-            question_list, answer_list = get_testdata_cmmlu(subject=[subject], data_set=data_set, path=dataset_config['cmmlu_data_path'])
+            question_list, answer_list = get_testdata_cmmlu(subject=[subject], data_set=data_set)
             count = 0
             correct = 0
             for question, answer in zip(question_list, answer_list):
@@ -152,8 +166,6 @@ class Benchmark:
         return results
 
     def eval_boss(self, model, tokenizer, test_dataset, split='test', ICL_split='test', num_shot=0):
-        from mi_optimize.datasets.load_boss import get_fewshot_boss, get_zeroshot_boss, get_testdata_boss
-        from benchmark.boss.metrics import compute_metric
         MAX_TOKENS = {
         "SentimentAnalysis": 2,
         "ToxicDetection": 1,
@@ -186,8 +198,6 @@ class Benchmark:
                                temperature=0, max_new_tokens=MAX_TOKENS[task_name], do_sample=False, pad_token_id=tokenizer.eos_token_id)
             output = output[0]["generated_text"].strip("\n").strip()
 
-            # print("question:",question)
-            # print("answer:",output)
             prediction_list.append(output)
 
         results = compute_metric(task_name, prediction_list, answer_list)

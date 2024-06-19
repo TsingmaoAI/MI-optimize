@@ -1,6 +1,6 @@
 rtn:
   kwargs:
-    model_type: "llama"
+    model_type: "other_model"
     w_dtype: int4    # select from ['int2', 'int3', 'int4', 'fp4', 'int8', 'fp8', 'float16']
     a_dtype: float16   # select from ['int2', 'int3', 'int4', 'fp4', 'int8', 'fp8', 'float16']
     num_calibrate: 1

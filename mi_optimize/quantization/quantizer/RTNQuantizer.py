@@ -76,9 +76,9 @@ class LinearRTNQuantizer(BaseQuantizer):
                 raise ValueError('quantization type support static and dynamic')
             
         if self.wbit == Precision.FP16:
-            w = self.quant_hub_linear.core.weight.half()
+            w = self.quant_hub_linear.core.weight.half().to(x)
         elif self.wbit == Precision.FP32:
-            w = self.quant_hub_linear.core.weight.float()
+            w = self.quant_hub_linear.core.weight.float().to(x)
         else:
             w = self.fake_w.to(x)
 

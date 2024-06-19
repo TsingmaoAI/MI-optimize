@@ -116,25 +116,24 @@ def get_subjects_ceval(subject_name):
     return subjects_dict
 
 
-def load_ceval(subjects, data_set, path="ceval/ceval-exam"):
+def load_ceval(subjects, split, path="mi_optimize/datasets/ceval-exam"):
     # print("get_ceval")
-
     datasets = {}
     for sub in subjects:
         datasets[sub] = load_dataset(path=path, name=sub)
-        datasets[sub] = datasets[sub][data_set]
+        datasets[sub] = datasets[sub][split]
 
     return datasets
 
-def get_calibrate_ceval(tokenizer, subject='all', data_set='test', question=4, shuffle=False, seed=42, answer=False, path=None):
-    calibrate_data = get_ceval(subject=subject, data_set=data_set, question=question, shuffle=shuffle, seed=seed, answer=answer, path=path)
+def get_calibrate_ceval(tokenizer, calibrate_subject='all', split='test', calibrate_nums=4, shuffle=False, seed=42, answer=False, calibrate_seqlen=2048, **kwargs):
+    calibrate_data = get_ceval(subject=calibrate_subject, split=split, question=calibrate_nums, shuffle=shuffle, seed=seed, answer=answer)
     inputs_ids = []
     for data in calibrate_data:
         input_ids = tokenizer.encode(data, return_tensors='pt')
-        inputs_ids.append(input_ids)
+        inputs_ids.append(input_ids[:calibrate_seqlen])
     return inputs_ids
 
-def get_ceval(subject='all', data_set='test', question=4, shuffle=False, seed=42, answer=False, path=None):
+def get_ceval(subject='all', split='test', question=4, shuffle=False, seed=42, answer=False):
     """
         @qustion: Number of questions per discipline
         @shuffle: Is it randomly shuffled (Whether to randomly select questions for each discipline)
@@ -149,7 +148,7 @@ def get_ceval(subject='all', data_set='test', question=4, shuffle=False, seed=42
         subjects = [key for key, value in TASK2CTG.items() if value == subject]
     else:
         subjects = subject
-    ceval_data = load_ceval(subjects=subjects, data_set=data_set, path=path)
+    ceval_data = load_ceval(subjects=subjects, split=split)
     ceval_question_list = []
     for subject_name in ceval_data:
         subject_data = ceval_data[subject_name]
@@ -179,8 +178,8 @@ def get_ceval(subject='all', data_set='test', question=4, shuffle=False, seed=42
     return ceval_question_list
 
 
-def get_fewshot_ceval(subject='all', data_set='test', question=5, shuffle=False, seed=42, answer=True, path=None, model_name=""):
-    ceval_content_list = get_ceval(subject=subject, data_set=data_set, question=question, shuffle=shuffle, seed=seed, answer=answer, path=path)
+def get_fewshot_ceval(subject='all', split='test', question=5, shuffle=False, seed=42, answer=True, model_name=""):
+    ceval_content_list = get_ceval(subject=subject, split=split, question=question, shuffle=shuffle, seed=seed, answer=answer)
 
     title = f"以下是中国考试的单项选择题，请选出其中的正确答案。"
     if model_name == "chatglm":
@@ -199,8 +198,8 @@ def get_fewshot_ceval(subject='all', data_set='test', question=5, shuffle=False,
 
     return prompt
 
-def get_testdaset_ceval(subject='all', data_set='test', question='all', shuffle=False, seed=42, answer=True, path=None):
-    ceval_question_list = get_ceval(subject=subject, data_set=data_set, question=question, shuffle=shuffle, seed=seed, answer=answer, path=path)
+def get_testdaset_ceval(subject='all', split='test', question='all', shuffle=False, seed=42, answer=True):
+    ceval_question_list = get_ceval(subject=subject, split=split, question=question, shuffle=shuffle, seed=seed, answer=answer)
     
     question_list = []
     answer_list = []

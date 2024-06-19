@@ -1,35 +1,30 @@
 import torch
+import yaml
 from transformers import AutoModelForCausalLM, LlamaTokenizer
 from mi_optimize import quantize
 from mi_optimize import Benchmark
 from mi_optimize.export import export_module
 
 def main(args):
-    # Define paths for the pre-trained model and quantized model
-    model_path = args.model_path
 
     # Define quantization configuration
-    quant_config = {
-        "algo": "rtn",
-        "kwargs": {'w_dtype': "int4", 'a_type': "float16"},
-        "calibrate_name": "wikitext2"  # select from  ['wikitext2', 'c4', 'ptb', 'cmmlu', 'cmmlu_hm', 'cmmlu_st', 'cmmlu_ss']
-    }
+    with open(args.quant_config, 'r') as file:
+        config = yaml.safe_load(file)
 
     # Load the pre-trained Hugging Face model
-    model = AutoModelForCausalLM.from_pretrained(model_path, trust_remote_code=True).half()  
-    tokenizer = LlamaTokenizer.from_pretrained(model_path)
+    model = AutoModelForCausalLM.from_pretrained(args.model, trust_remote_code=True).half()  
+    tokenizer = LlamaTokenizer.from_pretrained(args.model)
 
     # Quantize the model
-    model = quantize(model, tokenizer=tokenizer, quant_config=quant_config)
+    quant_model = quantize(model, tokenizer=tokenizer, quant_config=config['quant_config'])
     
-    model = model.eval()
-    model.to('cuda')
+    quant_model = quant_model.eval()
+    quant_model.to('cuda')
     
     benchmark = Benchmark()
     # Evaluate Perplexity (PPL) on various datasets
     if args.eval_ppl:
-        test_dataset = ['wikitext2']  
-        results = benchmark.eval_ppl(model, tokenizer, test_dataset)
+        results = benchmark.eval_ppl(model, tokenizer)
         print(results)
     
     # Evaluate the model on the ceval_benchmark
@@ -57,13 +52,14 @@ def main(args):
         results = benchmark.eval_lmeval(model, tokenizer, eval_tasks, num_shot=5)
         print(results)
     quant_model = export_module(quant_model)
-    torch.save(quant_model, args.quant_model_path)
+    torch.save(quant_model, args.save)
     
 if __name__=='__main__':
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model-path', type=str, default='meta-llama/Llama-2-7b-hf')
-    parser.add_argument('--quant-model-path', type=str, default='llama-2-7b-quant.pth')
+    parser.add_argument('--model', type=str, default='meta-llama/Llama-2-7b-hf')
+    parser.add_argument('--save', type=str, default='llama-2-7b-quant.pth')
+    parser.add_argument('--quant-config', type=str, default='./configs/rtn_quant_config.yaml')
     parser.add_argument('--eval-ppl', action='store_true', help='')
     parser.add_argument('--eval-ceval', action='store_true', help='')
     parser.add_argument('--eval-cmmlu', action='store_true', help='')

@@ -157,7 +157,7 @@ def llama_sequential(model, algo, data, **kwargs):
                 inputs, fp_outputs = fp_outputs, inputs 
         del fp_outputs, inputs, quant_outputs
         clear_mem()
-        model.config.use_cache = use_cache
-        model = model.to(model_device)
-        return model
+    model.config.use_cache = use_cache
+    model = model.to(model_device)
+    return model
 

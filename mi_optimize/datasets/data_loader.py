@@ -1,143 +1,137 @@
-
-import numpy as np
-import torch
 import random
 import logging
 
-from itertools import islice
-import yaml
+from .load_ceval import get_calibrate_ceval
+from .load_cmmlu import get_calibrate_cmmlu
+from .load_boss import get_calibrate_boss
 
 import os
 os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
 from datasets import load_dataset
 
-def set_seed(seed):
-    np.random.seed(seed)
-    torch.random.manual_seed(seed)
 
-def get_wikitext2(tokenizer, nsamples=128, seqlen=2048, seed=42, dataset_path_config=[]):
-    print("get_wikitext2")
-    traindata = load_dataset(dataset_path_config['wikitext_data_path'], 'wikitext-2-raw-v1', split='train')  
-    testdata = load_dataset(dataset_path_config['wikitext_data_path'], 'wikitext-2-raw-v1', split='test')
-
-    trainenc = tokenizer("\n\n".join(traindata['text']), return_tensors='pt') 
-    testenc = tokenizer("\n\n".join(testdata['text']), return_tensors='pt')
-
-    random.seed(seed)
-    trainloader = []
-    for _ in range(nsamples):
-        i = random.randint(0, trainenc.input_ids.shape[1] - seqlen - 1)
-        j = i + seqlen
-        inp = trainenc.input_ids[:, i:j]
-        trainloader.append(inp)
-
-    nsamples = len(testenc['input_ids'][0]) // seqlen + 1
-    testloader = []
-    for i in range(nsamples):
-        testloader.append(testenc['input_ids'][:, i * seqlen: (i + 1) * seqlen])
+def get_wikitext2(tokenizer, split='test', nsamples=128, seqlen=2048, seed=42, **kwargs):
+    if split=='train':
+        logging.info("get_wikitext2_train")
+        traindata = load_dataset("mi_optimize/datasets/wikitext", 'wikitext-2-raw-v1', split='train')  
+        trainenc = tokenizer("\n\n".join(traindata['text']), return_tensors='pt') 
+        random.seed(seed)
+        trainloader = []
+        for _ in range(nsamples):
+            i = random.randint(0, trainenc.input_ids.shape[1] - seqlen - 1)
+            j = i + seqlen
+            inp = trainenc.input_ids[:, i:j]
+            trainloader.append(inp)
+        return trainloader
     
-    return trainloader, testloader
-
-
-def get_c4(tokenizer, nsamples=128, seqlen=2048, seed=42, dataset_path_config=[]):
-    print("get_c4")
-    traindata = load_dataset(dataset_path_config['c4_data_path'], name='default', data_files={'train': 'en/c4-train.00000-of-01024.json.gz'}, split='train')
-    valdata = load_dataset(dataset_path_config['c4_data_path'], name='default', data_files={'validation': 'en/c4-validation.00000-of-00008.json.gz'}, split='validation')
+    if split=='test':
+        logging.info("get_wikitext2_test")
+        testdata = load_dataset("mi_optimize/datasets/wikitext", 'wikitext-2-raw-v1', split='test')
+        testenc = tokenizer("\n\n".join(testdata['text']), return_tensors='pt')
+        if nsamples=='all':
+            nsamples = len(testenc['input_ids'][0]) // seqlen + 1
+        testloader = []
+        print('nsamples', nsamples)
+        for i in range(nsamples):
+            testloader.append(testenc['input_ids'][:, i * seqlen: (i + 1) * seqlen])
+        return testloader
     
-    random.seed(seed)
-    trainloader = []
-    for _ in range(nsamples):
-        while True:
-            i = random.randint(0, len(traindata) - 1)
-            trainenc = tokenizer(traindata[i]['text'], return_tensors='pt')
-            if trainenc.input_ids.shape[1] >= seqlen:
-                break
-        i = random.randint(0, trainenc.input_ids.shape[1] - seqlen - 1)
-        j = i + seqlen
-        inp = trainenc.input_ids[:, i:j]
-        trainloader.append(inp)
-    testenc = tokenizer(" ".join(valdata[:1100]['text']), return_tensors='pt')    
-    nsamples = len(testenc['input_ids'][0]) // seqlen + 1
-    testloader = []
-    for i in range(nsamples):
-        testloader.append(testenc['input_ids'][:, i * seqlen: (i + 1) * seqlen])
-    return trainloader, testloader
+    raise ValueError(f'not support wikitext2 {split} split')
+    
+    
+def get_c4(tokenizer, split='validation', nsamples=128, seqlen=2048, seed=42, **kwargs):
+    if split=='train':
+        logging.info("get_c4_train")
+        traindata = load_dataset("allenai/c4", name='default', data_files={'train': 'en/c4-train.00000-of-01024.json.gz'}, split='train')
+        random.seed(seed)
+        trainloader = []
+        for _ in range(nsamples):
+            while True:
+                i = random.randint(0, len(traindata) - 1)
+                trainenc = tokenizer(traindata[i]['text'], return_tensors='pt')
+                if trainenc.input_ids.shape[1] >= seqlen:
+                    break
+            i = random.randint(0, trainenc.input_ids.shape[1] - seqlen - 1)
+            j = i + seqlen
+            inp = trainenc.input_ids[:, i:j]
+            trainloader.append(inp)
+    
+    if split=='validation':
+        logging.info("get_c4_validation")
+        valdata = load_dataset("allenai/c4", name='default', data_files={'validation': 'en/c4-validation.00000-of-00008.json.gz'}, split='validation')
+        testenc = tokenizer(" ".join(valdata[:1100]['text']), return_tensors='pt')  
+        if nsamples=='all':  
+            nsamples = len(testenc['input_ids'][0]) // seqlen + 1
+        testloader = []
+        for i in range(nsamples):
+            testloader.append(testenc['input_ids'][:, i * seqlen: (i + 1) * seqlen])
+        return testloader
+    
+    raise ValueError(f'not support c4 {split} split')
 
-def get_ptb(tokenizer, nsamples=128, seqlen=2048, seed=42, dataset_path_config=[]):
-    print("get_ptb")
-    traindata = load_dataset(dataset_path_config['ptb_data_path'], 'penn_treebank', split='train')
-    testdata  = load_dataset(dataset_path_config['ptb_data_path'], 'penn_treebank', split='test')
 
-    trainenc = tokenizer(" ".join(traindata["sentence"]), return_tensors="pt")
-    testenc = tokenizer(" ".join(testdata ["sentence"]), return_tensors="pt")
+def get_ptb(tokenizer, split='test', nsamples=128, seqlen=2048, seed=42, **kwargs):
+    if split=='train':
+        logging.info("get_ptb_train")
+        traindata = load_dataset("mi_optimize/datasets/ptb_text_only", 'penn_treebank', split='train')
+        trainenc = tokenizer(" ".join(traindata["sentence"]), return_tensors="pt")
+        random.seed(seed)
+        trainloader = []
+        for _ in range(nsamples):
+            i = random.randint(0, trainenc.input_ids.shape[1] - seqlen - 1)
+            j = i + seqlen
+            inp = trainenc.input_ids[:, i:j]
+            tar = inp.clone()
+            tar[:, :-1] = -100
+            trainloader.append(inp)
+        return trainloader
+    
+    if split=='test':
+        logging.info("get_ptb_test")
+        testdata  = load_dataset("mi_optimize/datasets/ptb_text_only", 'penn_treebank', split='test')
+        testenc = tokenizer(" ".join(testdata ["sentence"]), return_tensors="pt")    
+        testloader = [] 
+        testenc = testenc.input_ids
+        nsamples = testenc.numel() // seqlen
+        for i in range(nsamples):
+            testloader.append(testenc[:, (i * seqlen):((i + 1) * seqlen)])
+        return testloader
+    
+    raise ValueError(f'not support ptb {split} split')
 
-    random.seed(seed)
-    trainloader = []
-    for _ in range(nsamples):
-        i = random.randint(0, trainenc.input_ids.shape[1] - seqlen - 1)
-        j = i + seqlen
-        inp = trainenc.input_ids[:, i:j]
-        tar = inp.clone()
-        tar[:, :-1] = -100
-        trainloader.append(inp)
-    testloader = [] 
-    testenc = testenc.input_ids
-    nsamples = testenc.numel() // seqlen
-    for i in range(nsamples):
-        testloader.append(testenc[:, (i * seqlen):((i + 1) * seqlen)])
-    return trainloader, testloader
-
-def get_loader(dataset_name, tokenizer, seqlen=2048, nsamples=128, seed=42, dataset_path_config=[]):
+def get_test_loader(dataset_name, tokenizer, seqlen=2048, nsamples=128, seed=42, split='test'):
     logging.info(f"Dataset: {dataset_name}")
     logging.info(f"Sequence length: {seqlen}")
     logging.info(f"Number of samples: {nsamples}")
     
     if dataset_name == 'wikitext2':
-        return get_wikitext2(tokenizer, nsamples=nsamples, seqlen=seqlen, seed=seed, dataset_path_config=dataset_path_config)
-    elif dataset_name == 'c4':
-        return get_c4(tokenizer, nsamples=nsamples, seed=seed, seqlen=seqlen, dataset_path_config=dataset_path_config)
-    elif dataset_name == 'ptb':
-        return get_ptb(tokenizer, nsamples=nsamples, seed=seed, seqlen=seqlen, dataset_path_config=dataset_path_config)
-    else:
-        raise ValueError(f"Unknown dataset: {dataset_name}")
+        return get_wikitext2(tokenizer, nsamples=nsamples, seqlen=seqlen, seed=seed, split=split)
+    if dataset_name == 'c4':
+        return get_c4(tokenizer, nsamples=nsamples, seed=seed, seqlen=seqlen)
+    if dataset_name == 'ptb':
+        return get_ptb(tokenizer, nsamples=nsamples, seed=seed, seqlen=seqlen)
+    
+    raise ValueError(f"Unknown dataset: {dataset_name}")
 
-def get_calibrate_dataset(calibrate_name, tokenizer, nsamples, seqlen, dataset_path_config):
-    if calibrate_name in ['wikitext2', 'c4', 'ptb']:
-        from mi_optimize.datasets import get_loader
-        calibrate_data, _ = get_loader(tokenizer=tokenizer, nsamples=nsamples, dataset_name=calibrate_name, seqlen=seqlen, dataset_path_config=dataset_path_config)
-
-    elif calibrate_name in ['ceval_all', 'ceval_hm', 'ceval_st', 'ceval_ss']:
-        from mi_optimize.datasets import get_calibrate_ceval
-        with open('./configs/ceval_calibration_config.yaml', 'r') as file:
-            calibrate_config = yaml.safe_load(file)
-            
-        calibration_split = calibrate_config['calibration_split']
-        calibrate_subs = calibrate_config[calibrate_name]['calibrate_subs']
-        calibrate_nums = calibrate_config[calibrate_name]['calibrate_nums']
-        logging.info(f"ceval calibration subject is {calibrate_subs} and calibrate nums is {calibrate_nums}")
-        calibrate_data = get_calibrate_ceval(tokenizer=tokenizer, subject=calibrate_subs, data_set=calibration_split, question=calibrate_nums, answer=True, path=dataset_path_config['ceval_data_path'])
+def get_calibrate_loader(tokenizer, calibrate_config):
+    calibrate_name = calibrate_config['name']
+    
+    if calibrate_name=='wikitext2':
+        return get_wikitext2(tokenizer, **calibrate_config)
+    
+    if calibrate_name=='c4':
+        return get_c4(tokenizer, **calibrate_config)
+    
+    if calibrate_name=='ptb':
+        return get_ptb(tokenizer, **calibrate_config)
+    
+    if calibrate_name=='ceval':
+        return get_calibrate_ceval(tokenizer, **calibrate_config)
+    
+    if calibrate_name=='cmmlu':
+        return get_calibrate_cmmlu(tokenizer, **calibrate_config)
         
-    elif calibrate_name in ['cmmlu_all', 'cmmlu_hm', 'cmmlu_st', 'cmmlu_ss']:
-        from mi_optimize.datasets import get_calibrate_cmmlu
-        with open('./configs/cmmlu_calibration_config.yaml', 'r') as file:
-            calibrate_config = yaml.safe_load(file)
-            
-        calibration_split = calibrate_config['calibration_split']
-        calibrate_subs = calibrate_config[calibrate_name]['calibrate_subs']
-        calibrate_nums = calibrate_config[calibrate_name]['calibrate_nums']
-        logging.info(f"cmmlu calibration subject is {calibrate_subs} and calibrate nums is {calibrate_nums}")
-        
-        calibrate_data = get_calibrate_cmmlu(tokenizer=tokenizer, subject=calibrate_subs, data_set=calibration_split, question=calibrate_nums, answer=True, path=dataset_path_config['cmmlu_data_path'])
-    elif calibrate_name in ['QuestionAnswering_squad','QuestionAnswering_advqa','QuestionAnswering_newsqa','QuestionAnswering_searchqa',
-                            'SentimentAnalysis_amazon','SentimentAnalysis_dynasent','SentimentAnalysis_semeval','SentimentAnalysis_sst5',
-                            'NaturalLanguageInference_mnli','NaturalLanguageInference_anli','NaturalLanguageInference_wanli','NaturalLanguageInference_contractnli',
-                            'ToxicDetection_civilcomments','ToxicDetection_advcivil','ToxicDetection_implicithate','ToxicDetection_toxigen']: 
-        from mi_optimize.datasets import get_calibrate_boss
-        calibrate_dataset = calibrate_name.split("_")
-        calibrate_task_name = calibrate_dataset[0]
-        calibrate_dataset_name = calibrate_dataset[1]
-        calibrate_data = get_calibrate_boss(tokenizer=tokenizer, task_name=calibrate_task_name, dataset_name=calibrate_dataset_name, calibrate_num=nsamples)
-    else:
-        raise ValueError(f'not support {calibrate_name}')
-
-    return calibrate_data
+    if calibrate_name=='boss':
+        return get_calibrate_boss(tokenizer, **calibrate_config)
+    
+    raise ValueError(f'not support calibrate name:{calibrate_name}')

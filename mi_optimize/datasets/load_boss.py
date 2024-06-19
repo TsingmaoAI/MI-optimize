@@ -9,14 +9,11 @@ from itertools import islice
 from click import prompt
 from collections import Counter
 
-def get_boss(task_name,dataset_name,split,shuffle=False, seed=42):
+def get_boss(task_name, dataset_name, split, shuffle=False, seed=42):
     SA_label_mapping = {"0":"negative", "1":"positive", "2":"neutral"}
     NLI_label_mapping = {"0":"entailment", "1":"neutral","2":"contradiction" }
     TD_label_mapping = {"0":"benign","1":"toxic"}
-    with open("./configs/datasets_path.yaml") as file:
-        dataset_path_config = yaml.safe_load(file)
-    boss_data_path = dataset_path_config['boss_data_path']
-    data_dir = f"{boss_data_path}/{task_name}/{dataset_name}"
+    data_dir = f"mi_optimize/datasets/BOSS/{task_name}/{dataset_name}"
     if task_name == "QuestionAnswering":
         examples = []
         with open(os.path.join(data_dir, f"{split}.json"),'r') as f:
@@ -118,12 +115,12 @@ def get_str(task_name, dataset_name, nsamples=208, split='train', shuffle=False,
 
 
 
-def get_calibrate_boss(tokenizer, task_name, dataset_name, calibrate_num=128, split='train', shuffle=False, seed=42):
-    calibrate_data = get_str(task_name, dataset_name,calibrate_num,split,shuffle,seed)
+def get_calibrate_boss(tokenizer, task_name, dataset_name, calibrate_nums=128, split='train', shuffle=False, seed=42, calibrate_seqlen=2048, **kwargs):
+    calibrate_data = get_str(task_name, dataset_name, calibrate_nums,split,shuffle,seed)
     inputs_ids = []
     for data in calibrate_data:
         input_ids = tokenizer.encode(data, return_tensors='pt')
-        inputs_ids.append(input_ids)
+        inputs_ids.append(input_ids[:calibrate_seqlen])
     return inputs_ids
 
 def get_fewshot_boss(task_name, dataset_name, fewshot_num, split='test', answer=True, max_length=1024, shuffle=False, seed=42):
