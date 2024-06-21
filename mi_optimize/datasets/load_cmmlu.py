@@ -88,7 +88,7 @@ def get_subjects_cmmlu(subject_name):
         subjects_dict = TASK2CTG
     return subjects_dict
 
-def load_cmmlu(subjects, split, path="haonan-li/cmmlu"):
+def load_cmmlu(subjects, split, path="mi_optimize/datasets/cmmlu_v1_0_1"):
     # print("get CMMLU")
 
     datasets = {}
@@ -103,7 +103,7 @@ def load_cmmlu(subjects, split, path="haonan-li/cmmlu"):
     return datasets
 
 
-def get_cmmlu(subject='all', split='test', question=4, shuffle=False, seed=42, answer=False, path=None):
+def get_cmmlu(subject='all', split='test', question=4, shuffle=False, seed=42, answer=False):
     """
         @qustion: Number of questions per discipline
         @shuffle: Is it randomly shuffled (Whether to randomly select questions for each discipline)
@@ -119,7 +119,7 @@ def get_cmmlu(subject='all', split='test', question=4, shuffle=False, seed=42, a
     else:
         subjects = subject
 
-    CMMLU_data = load_cmmlu(subjects=subjects, split=split, path=path)
+    CMMLU_data = load_cmmlu(subjects=subjects, split=split)
     CMMLU_question_list = []
     for subject_name in CMMLU_data:
         subject_data = CMMLU_data[subject_name]
@@ -148,16 +148,16 @@ def get_cmmlu(subject='all', split='test', question=4, shuffle=False, seed=42, a
             
     return CMMLU_question_list
 
-def get_calibrate_cmmlu(tokenizer, subject='all', split='test', calibrate_nums=4, shuffle=False, seed=42, answer=False, calibrate_seqlen=2048, **kwargs):
-    calibrate_data = get_cmmlu(subject=subject, split=split, question=calibrate_nums, shuffle=shuffle, seed=seed, answer=answer)
+def get_calibrate_cmmlu(tokenizer, calibrate_subject='all', split='test', calibrate_nums=4, shuffle=False, seed=42, answer=False, calibrate_seqlen=2048, **kwargs):
+    calibrate_data = get_cmmlu(subject=calibrate_subject, split=split, question=calibrate_nums, shuffle=shuffle, seed=seed, answer=answer)
     inputs_ids = []
     for data in calibrate_data:
         input_ids = tokenizer.encode(data, return_tensors='pt')
         inputs_ids.append(input_ids[:calibrate_seqlen])
     return inputs_ids
         
-def get_testdata_cmmlu(subject='all', split='test', question='all', shuffle=False, seed=42, answer=True, path=None):
-    CMMLU_question_list = get_cmmlu(subject=subject, split=split, question=question, shuffle=shuffle, seed=seed, answer=answer, path=path)
+def get_testdata_cmmlu(subject='all', split='test', question='all', shuffle=False, seed=42, answer=True):
+    CMMLU_question_list = get_cmmlu(subject=subject, split=split, question=question, shuffle=shuffle, seed=seed, answer=answer)
     
     question_list = []
     answer_list = []
@@ -168,8 +168,8 @@ def get_testdata_cmmlu(subject='all', split='test', question='all', shuffle=Fals
     return question_list, answer_list
 
 
-def get_fewshot_cmmlu(subject='all', split='test', question=5, shuffle=False, seed=42, answer=True, path=None, model_name=""):
-    CMMLU_content_list = get_cmmlu(subject=subject, split=split, question=question, shuffle=shuffle, seed=seed, answer=answer, path=path)
+def get_fewshot_cmmlu(subject='all', split='test', question=5, shuffle=False, seed=42, answer=True, model_name=""):
+    CMMLU_content_list = get_cmmlu(subject=subject, split=split, question=question, shuffle=shuffle, seed=seed, answer=answer)
 
     title = f"以下是中国考试的单项选择题，请选出其中的正确答案。"
     if model_name == "chatglm":

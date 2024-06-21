@@ -31,7 +31,6 @@ def get_wikitext2(tokenizer, split='test', nsamples=128, seqlen=2048, seed=42, *
         if nsamples=='all':
             nsamples = len(testenc['input_ids'][0]) // seqlen + 1
         testloader = []
-        print('nsamples', nsamples)
         for i in range(nsamples):
             testloader.append(testenc['input_ids'][:, i * seqlen: (i + 1) * seqlen])
         return testloader

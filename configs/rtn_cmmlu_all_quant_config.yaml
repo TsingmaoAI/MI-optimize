@@ -20,8 +20,8 @@ quant_config:
     skip_layers:                   # the linear layer to skip, should match the module name
       - lm_head
   calibrate_config:
-    name: 'ceval'
-    split: test
+    name: 'cmmlu'
+    split: dev
     calibrate_subject: all
     calibrate_nums: 4 
     calibrate_seqlen: 2048

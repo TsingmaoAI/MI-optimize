@@ -130,7 +130,7 @@ class Quantizer(torch.nn.Module):
         return scale, zero_point
 
     def quantize(self, data, scale, zero_point):
-        quantized_data = torch.round(data / scale +zero_point)
+        quantized_data = torch.round(data / scale) +zero_point
         quantized_data = torch.clamp(quantized_data, self.qmin, self.qmax)
         return quantized_data
     

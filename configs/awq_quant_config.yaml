@@ -1,0 +1,20 @@
+quant_config:
+  algo: rtn
+  kwargs:
+    w_dtype: int4    # select from ['int2', 'int3', 'int4', 'int8']
+    a_dtype: float16
+    device: 'cuda'
+    offload: 'cpu'
+    w_groupsize: 128        
+    w_qtype: "per_group"                    
+    block_sequential: False
+    layer_sequential: False
+    skip_layers:                   # the linear layer to skip, should match the module name
+      - lm_head
+  calibrate_config:
+    name: 'wikitext2'
+    split: train
+    nsample: 1
+    seqlen: 2048
+  
+  

@@ -10,7 +10,7 @@ from mi_optimize.datasets.load_cmmlu import get_subjects_cmmlu, get_testdata_cmm
 from mi_optimize.datasets.load_boss import get_fewshot_boss, get_zeroshot_boss, get_testdata_boss
 from benchmark.boss.metrics import compute_metric
 from transformers import pipeline
-
+logging.basicConfig(level=logging.INFO)
 
 class Benchmark:
     def __init__(self):
@@ -62,17 +62,17 @@ class Benchmark:
         results = {}
         wiki2_ppl = self.eval_wiki2_ppl(model, tokenizer, nsamples=nsamples)
         ptb_ppl = self.eval_ptb_ppl(model, tokenizer, nsamples=nsamples)
-        c4_ppl = self.eval_c4_ppl(model, tokenizer, nsamples=nsamples)
+        # c4_ppl = self.eval_c4_ppl(model, tokenizer, nsamples=nsamples)
         results['wikitext_ppl'] = wiki2_ppl
         results['ptb_ppl'] = ptb_ppl
-        results['c4_ppl'] = c4_ppl
+        # results['c4_ppl'] = c4_ppl
         return results
     
-    def eval_ceval(self, model, tokenizer, model_type='baichuan', subject='all', data_set='val',num_shot=0):
+    def eval_ceval(self, model, tokenizer, model_type='baichuan', subject='all', split='val',num_shot=0):
         results = {}
         subject_dict = get_subjects_ceval(subject)
         for subject in tqdm(subject_dict):
-            question_list, answer_list = get_testdaset_ceval(subject=[subject], data_set=data_set)
+            question_list, answer_list = get_testdaset_ceval(subject=[subject], split=split)
             count = 0
             correct = 0
             for question, answer in zip(question_list, answer_list):
@@ -115,11 +115,11 @@ class Benchmark:
         
         return results
     
-    def eval_cmmlu(self, model, tokenizer, model_type='baichuan', subject='all', data_set='test', num_shot=0):
+    def eval_cmmlu(self, model, tokenizer, model_type='baichuan', subject='all', split='test', num_shot=0):
         results = {}
         subject_dict = get_subjects_cmmlu(subject)
         for subject in tqdm(subject_dict):
-            question_list, answer_list = get_testdata_cmmlu(subject=[subject], data_set=data_set)
+            question_list, answer_list = get_testdata_cmmlu(subject=[subject], split=split)
             count = 0
             correct = 0
             for question, answer in zip(question_list, answer_list):

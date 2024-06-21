@@ -152,7 +152,6 @@ def get_ceval(subject='all', split='test', question=4, shuffle=False, seed=42, a
     ceval_question_list = []
     for subject_name in ceval_data:
         subject_data = ceval_data[subject_name]
-
         # if get all question
         if question == 'all':
             question_num = len(subject_data)
@@ -160,7 +159,6 @@ def get_ceval(subject='all', split='test', question=4, shuffle=False, seed=42, a
             question_num = len(subject_data) if question > len(subject_data) else question
         else:
             question_num = len(subject_data) if question[subject_name] > len(subject_data) else question[subject_name]  # Limit quantity
-
         # if shuffle
         if shuffle:
             random.seed(seed)

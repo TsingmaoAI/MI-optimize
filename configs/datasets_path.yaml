@@ -1,7 +1,0 @@
-# Config for Datasets Path
-ceval_data_path: "mi_optimize/datasets/ceval-exam"
-cmmlu_data_path: "mi_optimize/datasets/cmmlu_v1_0_1"
-c4_data_path: "allenai/c4"
-wikitext_data_path: "mi_optimize/datasets/wikitext"
-ptb_data_path: "mi_optimize/datasets/ptb_text_only"
-boss_data_path: "mi_optimize/datasets/BOSS"

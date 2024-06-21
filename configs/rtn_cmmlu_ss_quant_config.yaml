@@ -20,21 +20,23 @@
       skip_layers:                   # the linear layer to skip, should match the module name
         - lm_head
     calibrate_config:
-      name: 'ceval'
-      split: test
-      calibrate_subject: 'Humanities'
+      name: 'cmmlu'
+      split: val
+      calibrate_subject: Social Sciences
       calibrate_nums:
-        modern_chinese_history: 11
-        ideological_and_moral_cultivation: 12
-        logic: 12
-        law: 11
-        chinese_language_and_literature: 12
-        art_studies: 12
-        professional_tour_guide: 11
-        legal_professional: 11
-        high_school_chinese: 12
-        high_school_history: 12
-        middle_school_history: 12
+        business_ethics: 9
+        college_education: 9
+        economics: 10
+        education: 10
+        high_school_geography: 10
+        journalism: 10
+        management: 10
+        marketing: 10
+        professional_accounting: 10
+        professional_psychology: 10
+        public_relations: 10
+        security_study: 10
+        sociology: 10
       calibrate_seqlen: 2048
       shuffle: False
   

@@ -55,7 +55,7 @@ class LinearZeroquantQuantizer(BaseQuantizer):
             w = self.quant_hub_linear.core.weight.float()
             x = x.float()
         else:
-            w = self.Q.to(x)
+            w = self.fake_w.to(x)
 
         bias = None if self.quant_hub_linear.core.bias is None else self.quant_hub_linear.core.bias.to(x)
         return F.linear(x, w, bias).to(origin_dtype)

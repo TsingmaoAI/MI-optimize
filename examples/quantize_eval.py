@@ -19,7 +19,7 @@ def main(args):
     quant_model = quantize(model, tokenizer=tokenizer, quant_config=config['quant_config'])
     
     quant_model = quant_model.eval()
-    quant_model.to('cuda')
+    quant_model.to('cuda:1')
     
     benchmark = Benchmark()
     # Evaluate Perplexity (PPL) on various datasets
@@ -34,7 +34,7 @@ def main(args):
 
     # Evaluate the model on the mmlu benchmark
     if args.eval_cmmlu:
-        results = benchmark.eval_cmmlu(model, tokenizer, model_type='llama', subject='all', data_set='test-source', num_shot=0)
+        results = benchmark.eval_cmmlu(model, tokenizer, model_type='llama', subject='all', split='test-source', num_shot=0)
         print(results)
 
     # Evaluate the model on the BOSS benchmark

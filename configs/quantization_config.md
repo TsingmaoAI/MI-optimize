@@ -11,7 +11,7 @@ The quantization process adjusts the precision of model weights and activations,
 These parameters are shared across different quantization algorithms:
 
 - `model_type`: Indicates the type of model to quantize (e.g., `llama`, `chatglm`, `baichuan`, `other_model`).
-- `w_dtype`: Weight data type, choices include `int2`, `int3`, `int4`, `int8`, `fp8`, `float16`.
+- `w_dtype`: Weight data type, choices include `int2`, `int3`, `int4`, `int8`,`float16`.
 - `a_dtype`: Activation data type, choices mirror those of `w_dtype`.
 - `num_calibrate`: Number of samples used for calibration. default: 128
 - `calibrate_seq_length`: Sequence length for calibration. default: 2048

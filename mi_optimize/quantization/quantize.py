@@ -5,7 +5,7 @@ from mi_optimize.quantization.models import llama_sequential, baichuan_sequentia
 
 def quantize(model, tokenizer, quant_config):
     kwargs = quant_config['kwargs']
-    kwargs['abit'] = STR_TO_PRECISION[kwargs.pop('a_dtype')]
+    kwargs['abit'] = STR_TO_PRECISION[kwargs.pop('a_dtype')] 
     kwargs['wbit'] = STR_TO_PRECISION[kwargs.pop('w_dtype')]
     calibrate_config = quant_config['calibrate_config']
     algo = quant_config['algo']

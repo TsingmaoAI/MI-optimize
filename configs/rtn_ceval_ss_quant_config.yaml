@@ -22,19 +22,18 @@
     calibrate_config:
       name: 'ceval'
       split: test
-      calibrate_subject: 'Humanities'
+      calibrate_subject: 'Social Science'
       calibrate_nums:
-        modern_chinese_history: 11
-        ideological_and_moral_cultivation: 12
-        logic: 12
-        law: 11
-        chinese_language_and_literature: 12
-        art_studies: 12
-        professional_tour_guide: 11
-        legal_professional: 11
-        high_school_chinese: 12
-        high_school_history: 12
-        middle_school_history: 12
+        college_economics: 13
+        business_administration: 13
+        marxism: 13
+        mao_zedong_thought: 12
+        education_science: 13
+        teacher_qualification: 13
+        high_school_politics: 13
+        high_school_geography: 13
+        middle_school_politics: 13
+        middle_school_geography: 12
       calibrate_seqlen: 2048
       shuffle: False
   
