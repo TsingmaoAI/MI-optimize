@@ -3,24 +3,21 @@ from mi_optimize import Benchmark
 from transformers import LlamaTokenizer, AutoModelForCausalLM
 
 def main(args):
-    model_path = args.model_path
-    quant_model = args.quant_model_path
     # Load Benchmark
     benchmark = Benchmark()
 
     # Load Model && tokenizer
-    tokenizer = LlamaTokenizer.from_pretrained(model_path)
+    tokenizer = LlamaTokenizer.from_pretrained(args.model)
     # model = AutoModelForCausalLM.from_pretrained(model_path, trust_remote_code=True).half().cuda()
-    model = torch.load(quant_model)
-
+    model = torch.load(args.quant_model)
+    print(model)
     model = model.eval()
 
-    model= model.cuda()
+    model.cuda()
 
     # Evaluate Perplexity (PPL) on various datasets
     if args.eval_ppl:
-        test_dataset = ['wikitext2']  
-        results = benchmark.eval_ppl(model, tokenizer, test_dataset)
+        results = benchmark.eval_ppl(model, tokenizer)
         print(results)
     
     # Evaluate the model on the ceval_benchmark
@@ -51,8 +48,8 @@ def main(args):
 if __name__=='__main__':
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model-path', type=str, default='meta-llama/Llama-2-7b-hf')
-    parser.add_argument('--quant-model-path', type=str, default='llama-2-7b-quant.pth')
+    parser.add_argument('--model', type=str, default='meta-llama/Llama-2-7b-hf')
+    parser.add_argument('--quant-model', type=str, default='llama-2-7b-quant.pth')
     parser.add_argument('--eval-ppl', action='store_true', help='')
     parser.add_argument('--eval-ceval', action='store_true', help='')
     parser.add_argument('--eval-cmmlu', action='store_true', help='')

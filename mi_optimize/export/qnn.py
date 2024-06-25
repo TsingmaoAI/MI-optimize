@@ -25,7 +25,7 @@ BITMASK = [
 
 
 class QLinear(QModule):
-    def __init__(self, in_channels, out_channels, bias=None, w_bits=4, a_bits=16, w_groupsize=128, a_groupsize=None, a_has_zero=False, a_qtype='per_tensor', w_has_zero=False, w_qtype='per_channel', quantization_type='static') -> None:
+    def __init__(self, in_channels, out_channels, bias=None, w_bits=4, a_bits=16, w_groupsize=128, a_groupsize=None, a_has_zero=False, a_qtype='per_token', w_has_zero=False, w_qtype='per_channel', quantization_type='dynamic') -> None:
         super().__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
@@ -69,6 +69,8 @@ class QLinear(QModule):
             elif a_qtype == 'per_tensor':
                 self.register_buffer('a_scale', torch.empty([1]))
                 self.register_buffer('a_zero_point', torch.empty([1]))
+            elif a_qtype == 'per_token':
+                assert quantization_type =='dynamic', 'per token quantization only support dynamic'
             else:
                 raise ValueError('not support activate qtype:{}'.format(a_qtype))
             self.a_quantizer = Quantizer(bits=PRECISION_TO_BIT[a_bits], has_zero=a_has_zero, qtype=a_qtype, groupsize=a_groupsize)
@@ -132,10 +134,8 @@ class QLinear(QModule):
             w = w.reshape(out_channel, in_channel)
         else:
             w = self.weight.to(x)
-        
         if self.smooth_factor is not None:
             x = x.div(self.smooth_factor.view(1, -1).to(x.device))
-
         if self.a_bits <= 8:
             if self.quantization_type == 'static':
                 scales = self.a_scale.to(x)
@@ -146,7 +146,6 @@ class QLinear(QModule):
                 x, scales, zero_points = self.a_quantizer.quantize_dequantize(x)
             else:
                 raise ValueError('quantization_type: {} is not support', self.quantization_type)
-
         if self.bias is not None:
             self.bias = self.bias.to(x)
         return F.linear(x, w, self.bias)

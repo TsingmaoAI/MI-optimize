@@ -1,8 +1,8 @@
 quant_config:
   algo: smoothquant
   kwargs:
-    w_dtype: int4    # select from ['int2', 'int3', 'int4', 'int8', 'float16']
-    a_dtype: float16   # select from ['int2', 'int3', 'int4', 'int8', 'float16']
+    w_dtype: int8    # select from ['int2', 'int3', 'int4', 'int8', 'float16']
+    a_dtype: int8   # select from ['int2', 'int3', 'int4', 'int8', 'float16']
     device: 'cuda'
     offload: 'cpu'
     w_groupsize: 128        

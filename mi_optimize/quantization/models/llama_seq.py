@@ -134,14 +134,15 @@ def llama_sequential(model, algo, data, **kwargs):
                         layer.quantizer[0].Q = Q
                         layer.set_default_quantizer(0)
                         del layer.quantizer[1], layer.core.weight
-                        layer.to(offload)
+                        # layer.to(offload)
                         clear_mem()
                     else:
                         layer.remove_hook()
                         layer.quantize()  
                         layer.set_default_quantizer(0)
                         del layer.core.weight
-                        layer.to(offload)
+                        # layer.to(offload)
+                        clear_mem()
                 del subset
                 
             if block_sequential:

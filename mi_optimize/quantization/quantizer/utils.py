@@ -130,7 +130,7 @@ class Quantizer(torch.nn.Module):
         return scale, zero_point
 
     def quantize(self, data, scale, zero_point):
-        quantized_data = torch.round(data / scale) +zero_point
+        quantized_data = torch.round(data / scale) + zero_point
         quantized_data = torch.clamp(quantized_data, self.qmin, self.qmax)
         return quantized_data
     
@@ -138,7 +138,6 @@ class Quantizer(torch.nn.Module):
         dequantized_data = scale * (quantized_data - zero_point)
         return dequantized_data
         
-    # def dequantize(self, )
     def quantize_dequantize(self, data):
         if self.qtype == 'per_tensor':
             x_min = data.min()
@@ -189,7 +188,7 @@ class Quantizer(torch.nn.Module):
             dequantized_data = self.dequantize(quantized_data, scales, zero_points)
             dequantized_data = dequantized_data.reshape(origin_shape)
         else:
-            raise ValueError("Unsupported quantization type. Use 'per_tensor', 'per_channel', or 'per_group'. or 'per_dimension'")
+            raise ValueError("Unsupported quantization type. Use 'per_tensor', 'per_channel', or 'per_group'. or 'per_dimension' or 'per_token'")
         
         return dequantized_data, scales, zero_points
 

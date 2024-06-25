@@ -19,7 +19,7 @@ def main(args):
     quant_model = quantize(model, tokenizer=tokenizer, quant_config=config['quant_config'])
     
     quant_model = quant_model.eval()
-    quant_model.to('cuda:1')
+    quant_model.to('cuda')
     
     benchmark = Benchmark()
     # Evaluate Perplexity (PPL) on various datasets

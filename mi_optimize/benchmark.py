@@ -57,15 +57,18 @@ class Benchmark:
         logging.info(f'c4 PPL {ppl}')
         return ppl
     
-    def eval_ppl(self, model, tokenizer, nsamples='all'):
+    def eval_ppl(self, model, tokenizer, nsamples='all', test_datasets=['wikitext2', 'ptb']):
         logging.info("Evaluating Perplexity (PPL) on the wikitext2, c4, ptb dataset")
         results = {}
-        wiki2_ppl = self.eval_wiki2_ppl(model, tokenizer, nsamples=nsamples)
-        ptb_ppl = self.eval_ptb_ppl(model, tokenizer, nsamples=nsamples)
-        # c4_ppl = self.eval_c4_ppl(model, tokenizer, nsamples=nsamples)
-        results['wikitext_ppl'] = wiki2_ppl
-        results['ptb_ppl'] = ptb_ppl
-        # results['c4_ppl'] = c4_ppl
+        if 'wikitext2' in test_datasets: 
+            wiki2_ppl = self.eval_wiki2_ppl(model, tokenizer, nsamples=nsamples)
+            results['wikitext_ppl'] = wiki2_ppl
+        if 'ptb' in  test_datasets:
+            ptb_ppl = self.eval_ptb_ppl(model, tokenizer, nsamples=nsamples)
+            results['ptb_ppl'] = ptb_ppl
+        if 'c4' in test_datasets:
+            c4_ppl = self.eval_c4_ppl(model, tokenizer, nsamples=nsamples)
+            results['c4_ppl'] = c4_ppl
         return results
     
     def eval_ceval(self, model, tokenizer, model_type='baichuan', subject='all', split='val',num_shot=0):

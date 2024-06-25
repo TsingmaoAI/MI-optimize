@@ -78,15 +78,6 @@ Here's a concise version of the description for the MI-optimize framework:
     pip install -e .
     ```
 
-### Install from PyPi
-
-To install the newest MI-optimize from PyPi
-
-```bash
-pip install mi_optimize
-```
-Choose either method to complete the installation.
-
 ## Usage
 ### Quick Start
 ```

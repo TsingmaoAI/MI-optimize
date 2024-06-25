@@ -17,6 +17,7 @@ class LinearSmoothQuantizer(BaseQuantizer):
         self.weight_quant = w_qtype
         self.groupsize = w_groupsize
         self.w_qtype = w_qtype
+        self.a_qtype = a_qtype
         self.act_quant = a_qtype
         self.quantization_type = quantization_type
 
@@ -134,12 +135,14 @@ class LinearSmoothQuantizer(BaseQuantizer):
 
             self.fake_w = Q
             self.w_scale = scale
-            self.w_zero_point = torch.zeros_like(scale)
+            # self.w_zero_point = torch.zeros_like(scale)
+            self.w_zero_point = (2**(self.wbit-1)-1)*torch.ones_like(scale)
             del Q, scale
 
         clear_mem()
     
     def forward(self, x):
+        # print('x', x)
         origin_dtype = x.dtype
         if self.abit == Precision.FP16:
             x = x.half()
@@ -147,9 +150,10 @@ class LinearSmoothQuantizer(BaseQuantizer):
             x = x.float()
         else:
             scales = self.smooth_factor
+            print('smooth_factor', scales)
             x = x.div(scales.view(1, -1).to(x.device))
             x = self.quant_act(x, n_bits=self.abit)
-
+            # print('q_x', x)
         if self.wbit == Precision.FP16:
             w = self.quant_hub_linear.core.weight.half().to(x)
         elif self.wbit == Precision.FP32:
@@ -157,6 +161,9 @@ class LinearSmoothQuantizer(BaseQuantizer):
             x = x.float()
         else:
             w = self.fake_w.to(x)
+        # print('w', w)
+        
+        # exit()
 
         bias = None if self.quant_hub_linear.core.bias is None else self.quant_hub_linear.core.bias.to(x)
         y = F.linear(x, w, bias).to(origin_dtype)
