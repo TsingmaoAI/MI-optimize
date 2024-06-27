@@ -1,0 +1,25 @@
+quant_config:
+  algo: zeroquant
+  kwargs:
+    w_dtype: int8    # select from ['int2', 'int3', 'int4', 'int8', 'float16']
+    a_dtype: int8    # select from ['int2', 'int3', 'int4',  'int8', 'float16']
+    device: 'cuda'
+    offload: 'cpu'
+    w_groupsize: 128
+    a_groupsize: -1
+    a_qtype: "per_token"              
+    w_qtype: "per_group"             
+    w_has_zero: False
+    a_has_zero: False
+    w_unsign: True
+    a_unsign: True
+    quantization_type: 'dynamic'
+    block_sequential: True
+    layer_sequential: False
+    skip_layers:                   # the linear layer to skip, should match the module name
+      - lm_head
+  calibrate_config:
+    name: 'wikitext2'
+    split: train
+    nsample: 1
+    seqlen: 2048

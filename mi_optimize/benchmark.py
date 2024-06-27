@@ -1,17 +1,16 @@
 import logging
 import torch
-import yaml
 import numpy as np
 import collections
 from tqdm import tqdm
 
-from mi_optimize.datasets.data_loader import get_loader
+from mi_optimize.datasets import get_wikitext2, get_ptb, get_c4
+from mi_optimize.datasets.load_ceval import get_subjects_ceval, get_testdaset_ceval, get_fewshot_ceval, extract_cot_answer_ceval
+from mi_optimize.datasets.load_cmmlu import get_subjects_cmmlu, get_testdata_cmmlu, get_fewshot_cmmlu, extract_cot_answer_cmmlu
+from mi_optimize.datasets.load_boss import get_fewshot_boss, get_zeroshot_boss, get_testdata_boss
+from benchmark.boss.metrics import compute_metric
 from transformers import pipeline
-
-# Config for Log and Dataset path
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-with open("./configs/datasets_path.yaml") as file:
-    dataset_config = yaml.safe_load(file)
+logging.basicConfig(level=logging.INFO)
 
 class Benchmark:
     def __init__(self):
@@ -21,46 +20,62 @@ class Benchmark:
     def compute_ppl(self, model, tokenizer, loader):
         total_loss = 0
         total_count = 0
-        with torch.no_grad():
-            for batch in tqdm(loader):
-                batch = batch.clone()
-                if batch.shape[1] <= 1: continue
-                input_ids = batch.to(model.device)
-                outputs = model(input_ids, labels=input_ids)
-                loss = outputs.loss
-                if tokenizer.pad_token_id is not None:
-                    
-                    count = input_ids.ne(tokenizer.pad_token_id).ne(-100).sum().item()
-                else:
-                    count = input_ids.ne(-100).sum().item()
-                total_loss += loss.item() * count
-                total_count += count
+        for batch in tqdm(loader):
+            batch = batch.clone()
+            if batch.shape[1] <= 1: continue
+            input_ids = batch.to(model.device)
+            outputs = model(input_ids, labels=input_ids)
+            loss = outputs.loss
+            if tokenizer.pad_token_id is not None:
+                
+                count = input_ids.ne(tokenizer.pad_token_id).ne(-100).sum().item()
+            else:
+                count = input_ids.ne(-100).sum().item()
+            total_loss += loss.item() * count
+            total_count += count
                 
         return np.exp(total_loss / total_count)
-
-    def eval_ppl(self, model, tokenizer, test_dataset):
-        """
-        评估模型在给定测试数据集上的困惑度（Perplexity）。
-        """
-        logging.info("Evaluating Perplexity (PPL) on the dataset")
-        
+    
+    def eval_wiki2_ppl(self, model, tokenizer, nsamples='all', split='test'):
+        logging.info("Evaluating Perplexity (PPL) on the wikitext2")
+        dataloader = get_wikitext2(tokenizer, nsamples=nsamples, split=split)
+        ppl = self.compute_ppl(model, tokenizer, dataloader)
+        logging.info(f'wikitext2 PPL {ppl}')
+        return ppl
+    
+    def eval_ptb_ppl(self, model, tokenizer, nsamples='all', split='test'):
+        logging.info("Evaluating Perplexity (PPL) on the ptb")
+        dataloader = get_ptb(tokenizer, nsamples=nsamples, split=split)
+        ppl = self.compute_ppl(model, tokenizer, dataloader)
+        logging.info(f'ptb PPL {ppl}')
+        return ppl
+    
+    def eval_c4_ppl(self, model, tokenizer, nsamples='all', split='validation'):
+        logging.info("Evaluating Perplexity (PPL) on the c4")
+        dataloader = get_c4(tokenizer, nsamples=nsamples, split=split)
+        ppl = self.compute_ppl(model, tokenizer, dataloader)
+        logging.info(f'c4 PPL {ppl}')
+        return ppl
+    
+    def eval_ppl(self, model, tokenizer, nsamples='all', test_datasets=['wikitext2', 'ptb']):
+        logging.info("Evaluating Perplexity (PPL) on the wikitext2, c4, ptb dataset")
         results = {}
-        for dataset in test_dataset:
-            # seqlen = 2048
-            dataloader, testloader = get_loader(dataset, tokenizer=tokenizer, seqlen=2048, dataset_path_config=dataset_config)
-            ppl = self.compute_ppl(model, tokenizer, testloader)
-            logging.info(f"dataset {testloader}")
-            logging.info(f'PPL {ppl}')
-            results[dataset] = ppl
-
+        if 'wikitext2' in test_datasets: 
+            wiki2_ppl = self.eval_wiki2_ppl(model, tokenizer, nsamples=nsamples)
+            results['wikitext_ppl'] = wiki2_ppl
+        if 'ptb' in  test_datasets:
+            ptb_ppl = self.eval_ptb_ppl(model, tokenizer, nsamples=nsamples)
+            results['ptb_ppl'] = ptb_ppl
+        if 'c4' in test_datasets:
+            c4_ppl = self.eval_c4_ppl(model, tokenizer, nsamples=nsamples)
+            results['c4_ppl'] = c4_ppl
         return results
     
-    def eval_ceval(self, model, tokenizer, model_type='baichuan', subject='all', num_shot=0):
+    def eval_ceval(self, model, tokenizer, model_type='baichuan', subject='all', split='val',num_shot=0):
         results = {}
-        from mi_optimize.datasets.load_ceval import get_subjects_ceval, get_testdaset_ceval, get_fewshot_ceval, extract_cot_answer_ceval
         subject_dict = get_subjects_ceval(subject)
-        for subject in subject_dict:
-            question_list, answer_list = get_testdaset_ceval(subject=[subject], data_set='val', path=dataset_config['ceval_data_path'])
+        for subject in tqdm(subject_dict):
+            question_list, answer_list = get_testdaset_ceval(subject=[subject], split=split)
             count = 0
             correct = 0
             for question, answer in zip(question_list, answer_list):
@@ -76,9 +91,10 @@ class Benchmark:
 
                 elif model_type=='baichuan' or model_type=='llama':
                     question = question_prompt + "\n\n" + question
-                    input_ids = tokenizer.encode(question, return_tensors='pt').to(model.device)
-                        
-                    output = model.generate(input_ids, max_new_tokens=1, return_dict_in_generate=True, output_scores=True, temperature=0.1, top_p=0.5, repetition_penalty=1.1)
+                    inputs = tokenizer(question, return_tensors='pt')
+                    input_ids = inputs['input_ids'].to(model.device)
+                    attention_mask = inputs['attention_mask'].to(model.device)
+                    output = model.generate(input_ids, attention_mask=attention_mask, max_new_tokens=1, return_dict_in_generate=True, output_scores=True, temperature=0.8, top_p=0.95, pad_token_id=tokenizer.eos_token_id)
 
                     scores = output.scores[0][0].to(torch.float32)
                     label_score = []
@@ -102,12 +118,11 @@ class Benchmark:
         
         return results
     
-    def eval_cmmlu(self, model, tokenizer, model_type='baichuan', subject='all', num_shot=0):
+    def eval_cmmlu(self, model, tokenizer, model_type='baichuan', subject='hm', split='test', num_shot=0):
         results = {}
-        from mi_optimize.datasets.load_cmmlu import get_subjects_cmmlu, get_testdata_cmmlu, get_fewshot_cmmlu, extract_cot_answer_cmmlu
         subject_dict = get_subjects_cmmlu(subject)
-        for subject in subject_dict:
-            question_list, answer_list = get_testdata_cmmlu(subject=[subject], data_set='test', path=dataset_config['cmmlu_data_path'])
+        for subject in tqdm(subject_dict):
+            question_list, answer_list = get_testdata_cmmlu(subject=[subject], split=split)
             count = 0
             correct = 0
             for question, answer in zip(question_list, answer_list):
@@ -123,8 +138,10 @@ class Benchmark:
 
                 elif model_type=='baichuan' or model_type=='llama':
                     question = question_prompt + "\n\n" + question
-                    input_ids = tokenizer.encode(question, return_tensors='pt').to(model.device)
-                    output = model.generate(input_ids, max_new_tokens=1, return_dict_in_generate=True, output_scores=True, temperature=0.1, top_p=0.5, repetition_penalty=1.1)
+                    inputs = tokenizer(question, return_tensors='pt')
+                    input_ids = inputs['input_ids'].to(model.device)
+                    attention_mask = inputs['attention_mask'].to(model.device)
+                    output = model.generate(input_ids, attention_mask=attention_mask, max_new_tokens=1, return_dict_in_generate=True, output_scores=True, temperature=0.1, top_p=0.5, repetition_penalty=1.1, pad_token_id=tokenizer.eos_token_id)
                     
                     scores = output.scores[0][0].to(torch.float32)
                     label_score = []
@@ -159,8 +176,8 @@ class Benchmark:
         "NameEntityRecognition": 50,
         "QuestionAnswering": 5}
 
-        logging.info("Evaluating the model on the BOSS benchmark")
-        # 伪代码：假设模型有一个 compute_boss_score 方法
+        logging.info("Evaluating the model on the boss benchmark")
+
         generator = pipeline(task="text-generation",
                      model=model,
                      tokenizer=tokenizer,
@@ -170,24 +187,20 @@ class Benchmark:
         test_dataset = test_dataset.split("_")
         task_name = test_dataset[0]
         dataset_name = test_dataset[1]
-        from datasets import get_testdata_BOSS, get_fewshot_BOSS, get_zeroshot_BOSS
-        question_list, answer_list = get_testdata_BOSS(task_name, dataset_name, split=split)
+        question_list, answer_list = get_testdata_boss(task_name, dataset_name, split=split)
 
-        if num_shot:
-            
-            question_prompt = get_fewshot_BOSS(task_name, dataset_name, num_shot, ICL_split)
+        if num_shot:         
+            question_prompt = get_fewshot_boss(task_name, dataset_name, num_shot, ICL_split)
         else:
-            question_prompt = get_zeroshot_BOSS(task_name, dataset_name)
+            question_prompt = get_zeroshot_boss(task_name, dataset_name)
 
         prediction_list = []
-        for question in question_list:
-            print("question:")
-            print(question)
+        for question in tqdm(question_list):
             question = question_prompt + question
-        
             output = generator(question, num_return_sequences=1, return_full_text=False, handle_long_generation="hole",
-                               temperature=0, max_new_tokens=MAX_TOKENS[task_name], do_sample=False)
+                               temperature=0, max_new_tokens=MAX_TOKENS[task_name], do_sample=False, pad_token_id=tokenizer.eos_token_id)
             output = output[0]["generated_text"].strip("\n").strip()
+
             prediction_list.append(output)
 
         results = compute_metric(task_name, prediction_list, answer_list)

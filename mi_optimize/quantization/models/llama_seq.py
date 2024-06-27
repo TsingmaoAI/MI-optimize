@@ -10,14 +10,13 @@ from mi_optimize.memory import clear_mem
 
 @torch.no_grad()
 def llama_sequential(model, algo, data, **kwargs):
-    logging.info(f"Applying {algo} quantization to the llama model with kwargs: {kwargs}")
-    device = kwargs.get('device')
-    offload = kwargs.get('offload')
-    block_sequential = kwargs.get('block_sequential')
-    layer_sequential = kwargs.get('layer_sequential') 
+    device = kwargs['device']
+    offload = kwargs['offload']
+    block_sequential = kwargs['block_sequential']
+    layer_sequential = kwargs['layer_sequential'] 
     
     with torch.no_grad() :
-        replace_module(model, exclude_layers=kwargs.get('skip_layers'), include_layers=['.*'])
+        replace_module(model, exclude_layers=kwargs['skip_layers'], include_layers=['.*'])
         use_cache = model.config.use_cache
         model_device = model.device
         model.config.use_cache = False
@@ -135,14 +134,15 @@ def llama_sequential(model, algo, data, **kwargs):
                         layer.quantizer[0].Q = Q
                         layer.set_default_quantizer(0)
                         del layer.quantizer[1], layer.core.weight
-                        layer.to(offload)
+                        # layer.to(offload)
                         clear_mem()
                     else:
                         layer.remove_hook()
                         layer.quantize()  
                         layer.set_default_quantizer(0)
                         del layer.core.weight
-                        layer.to(offload)
+                        # layer.to(offload)
+                        clear_mem()
                 del subset
                 
             if block_sequential:
@@ -158,7 +158,7 @@ def llama_sequential(model, algo, data, **kwargs):
                 inputs, fp_outputs = fp_outputs, inputs 
         del fp_outputs, inputs, quant_outputs
         clear_mem()
-        model.config.use_cache = use_cache
-        model = model.to(model_device)
-        return model
+    model.config.use_cache = use_cache
+    model = model.to(model_device)
+    return model
 

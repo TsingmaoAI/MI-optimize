@@ -1,0 +1,42 @@
+quant_config:
+  algo: rtn
+  kwargs:
+    w_dtype: int8    # select from ['int2', 'int3', 'int4', 'int8', 'float16']
+    a_dtype: int8   # select from ['int2', 'int3', 'int4', 'int8', 'float16']
+    calibrate_seq_length: 2048
+    device: 'cuda'
+    offload: 'cpu'
+    w_groupsize: -1
+    a_groupsize: -1
+    a_qtype: "per_tensor"              
+    w_qtype: "per_channel"             
+    w_has_zero: False
+    a_has_zero: False
+    w_unsign: True
+    a_unsign: True
+    quantization_type: 'static'
+    block_sequential: True
+    layer_sequential: True
+    skip_layers:                   # the linear layer to skip, should match the module name
+      - lm_head
+  calibrate_config:
+    name: 'cmmlu'
+    split: val
+    calibrate_subject: Social Sciences
+    calibrate_nums:
+      business_ethics: 9
+      college_education: 9
+      economics: 10
+      education: 10
+      high_school_geography: 10
+      journalism: 10
+      management: 10
+      marketing: 10
+      professional_accounting: 10
+      professional_psychology: 10
+      public_relations: 10
+      security_study: 10
+      sociology: 10
+    calibrate_seqlen: 2048
+    shuffle: False
+  

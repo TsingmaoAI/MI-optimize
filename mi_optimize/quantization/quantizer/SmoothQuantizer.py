@@ -17,6 +17,7 @@ class LinearSmoothQuantizer(BaseQuantizer):
         self.weight_quant = w_qtype
         self.groupsize = w_groupsize
         self.w_qtype = w_qtype
+        self.a_qtype = a_qtype
         self.act_quant = a_qtype
         self.quantization_type = quantization_type
 
@@ -108,7 +109,6 @@ class LinearSmoothQuantizer(BaseQuantizer):
             else:
                 raise ValueError(f"Invalid act_quant")
 
-            # self.scales = MEMORY_BANK.add_value('{id}_scales'.format(id=id(self)), scales, self.offload)
             self.smooth_factor = scales
             del input_feat, act_scales, scales, self.quant_hub_linear.core.input_tracks, w
         
@@ -134,7 +134,7 @@ class LinearSmoothQuantizer(BaseQuantizer):
 
             self.fake_w = Q
             self.w_scale = scale
-            self.w_zero_point = torch.zeros_like(scale)
+            self.w_zero_point = (2**(self.wbit-1)-1)*torch.ones_like(scale)
             del Q, scale
 
         clear_mem()
@@ -149,7 +149,6 @@ class LinearSmoothQuantizer(BaseQuantizer):
             scales = self.smooth_factor
             x = x.div(scales.view(1, -1).to(x.device))
             x = self.quant_act(x, n_bits=self.abit)
-
         if self.wbit == Precision.FP16:
             w = self.quant_hub_linear.core.weight.half().to(x)
         elif self.wbit == Precision.FP32:
@@ -157,7 +156,6 @@ class LinearSmoothQuantizer(BaseQuantizer):
             x = x.float()
         else:
             w = self.fake_w.to(x)
-
         bias = None if self.quant_hub_linear.core.bias is None else self.quant_hub_linear.core.bias.to(x)
         y = F.linear(x, w, bias).to(origin_dtype)
         if self.quant_out:

@@ -24,7 +24,23 @@ The provided code snippet illustrates how to evaluate a quantized model with dif
 - **Parameters:**
   - `model` (object): The quantized model.
   - `tokenizer` (object): The tokenizer.
-  - `test_dataset` (str): Dataset to evaluate. Options are `['NaturalLanguageInference_anli', 'NaturalLanguageInference_contractnli']`.
+  - `test_dataset` (str): Dataset to evaluate. Options are 
+  - `QuestionAnswering_squad`
+  - `QuestionAnswering_advqa`
+  - `QuestionAnswering_newsqa`
+  - `QuestionAnswering_searchqa`
+  - `SentimentAnalysis_amazon`
+  - `SentimentAnalysis_dynasent`
+  - `SentimentAnalysis_semeval`
+  - `SentimentAnalysis_sst5`
+  - `NaturalLanguageInference_mnli`
+  - `NaturalLanguageInference_anli`
+  - `NaturalLanguageInference_wanli`
+  - `NaturalLanguageInference_contractnli`
+  - `ToxicDetection_civilcomments`
+  - `ToxicDetection_advcivil`
+  - `ToxicDetection_implicithate`
+  - `ToxicDetection_toxigen`
   - `split` (str): Dataset split to evaluate, generally set to 'test'.
   - `ICL_split` (str): In-context learning split, usually set to 'test'.
   - `num_shot` (int): Number of examples for few-shot learning, typically 0.

@@ -78,50 +78,47 @@ Here's a concise version of the description for the MI-optimize framework:
     pip install -e .
     ```
 
-### Install from PyPi
-
-To install the newest MI-optimize from PyPi
-
-```bash
-pip install mi_optimize
-```
-Choose either method to complete the installation.
-
 ## Usage
-
+### Quick Start
+```
+python examples/quantize_eval.py --model {model_to_path} --quant-config ./configs/rtn_quant_config.yaml --eval-ppl --save llama-2-7b-quant.pth
+```
 ### Quantization 
 Below is an example of how to set up the quantization process for a model. For detailed information on all available quantization configuration options, please refer to the [quantization configuration guide](configs/quantization_config.md).
 ```
 # Import necessary libraries
+import torch
 from transformers import AutoModelForCausalLM, LlamaTokenizer
 from mi_optimize import quantize
 from mi_optimize.export import export_module
 
 # Define paths for the pre-trained model and quantized model
-model_path = 'meta-llama/Llama-2-7b-hf'
+# model_path = 'meta-llama/Llama-2-7b-hf'
+
 quant_path = 'llama-2-7b-quant.pth'
 
 # Define quantization configuration
 quant_config = {
     "algo": "rtn",
-    "kwargs": {'w_dtype': "int4", 'a_type': "float16"},
-    "calibrate_data": "wikitext2"  # select from  ['wikitext2', 'c4', 'ptb', 'cmmlu', 'cmmlu_hm', 'cmmlu_st', 'cmmlu_ss', 'NaturalLanguageInference_mnli']
+    "kwargs": {'w_dtype': "int8", 'a_dtype': "int8"},
+    "calibrate_name": "cmmlu"  # select from  ['wikitext2', 'c4', 'ptb', 'cmmlu_all'] 
  }
 
 # Load the pre-trained Hugging Face model
-model = AutoModelForCausalLM.from_pretrained(model_path, trust_remote_code=True).half()  
+model = AutoModelForCausalLM.from_pretrained(model_path, trust_remote_code=True).half().cuda()  
 tokenizer = LlamaTokenizer.from_pretrained(model_path)
 
 # Quantize the model
-model = quantize(model, quant_config=quant_config)
+model = quantize(model=model, tokenizer=tokenizer, quant_config=quant_config)
 
+print(model)
 model.cuda()
 
 input_text = "Llama is a large language model"
 
-input_ids = tokenizer.encode(input_text, return_tensors="pt")
+input_ids = tokenizer.encode(input_text, return_tensors="pt").to(model.device)
 
-output = model.generate(input_ids.cuda(), max_length=100, num_return_sequences=1, do_sample= False)
+output = model.generate(input_ids, num_return_sequences=1)
 
 decoded_output = tokenizer.decode(output[0], skip_special_tokens=True)
 print(decoded_output)
@@ -183,7 +180,7 @@ from transformers import LlamaTokenizer, TextGenerationPipeline
 from mi_optimize.export import qnn
 
 # Path to the quantized model
-quant_path = 'llama-2-7b-4bit.pth'
+quant_path = 'llama-2-7b-quant.pth'
 
 # Path to the tokenizer
 tokenizer_path = 'meta-llama/Llama-2-7b-hf'
@@ -191,23 +188,26 @@ tokenizer_path = 'meta-llama/Llama-2-7b-hf'
 # Load the quantized model
 model = torch.load(quant_path)
 
+model = model.cuda()
+
 # Load the tokenizer
 tokenizer = LlamaTokenizer.from_pretrained(tokenizer_path, trust_remote_code=True)
 
-# Input prompt
-prompt = "You're standing on the surface of the Earth. "
+# # Input prompt
+prompt = "Llama is a large language model"
 
-# Tokenize the input prompt
-tokens = tokenizer(prompt, return_tensors='pt').input_ids.cuda()
+# # Tokenize the input prompt
+inputs_ids = tokenizer.encode(prompt, return_tensors='pt').cuda()
 
 # Choose the backend for inference ('naive', 'vllm', 'tensorrt')
 backend = 'naive'   
 
 if backend == 'naive':
     start_time = time.time()
-    output = model.generate(tokens, max_tokens=512)
+    output = model.generate(inputs_ids, max_length=100, num_return_sequences=1, do_sample= False)
     decoded_output = tokenizer.decode(output[0], skip_special_tokens=True)
     print(decoded_output)
+    print(f'quantize time {time.time() - start_time}')
 
 elif backend == 'vllm':
     pass  # This will be added soon
@@ -339,7 +339,7 @@ Note: W/A Calib. represents the Weight and Activation calibration configuration 
 ## Cite
 If you found this work useful, please consider citing:
 ```
-@inproceedings{doe2021evaluating,
+@article{doe2024evaluating,
   title={Evaluating the Generalization Ability of Quantized LLMs: Benchmark, Analysis, and Toolbox},
   author={Fang Wu and Shenhao Peng and Chaoyu Guan and Hang Yao and Yijun Liu and Yuan Meng and Chen Tang and Xinzhu Ma and Zhi Wang and Wenwu Zhu},
   year={2024},

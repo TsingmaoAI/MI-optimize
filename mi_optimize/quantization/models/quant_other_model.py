@@ -9,7 +9,7 @@ from mi_optimize.quantization.quantizer import *
 from mi_optimize.memory import clear_mem
 
 @torch.no_grad()
-def quant_your_model(model, algo, data, **kwargs):
+def quant_other_model(model, algo, data, **kwargs):
     device = kwargs.get('device')
     offload = kwargs.get('offload')
     
