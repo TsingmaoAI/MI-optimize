@@ -79,9 +79,9 @@ def get_cmmlu_mapping():
 def get_subjects_cmmlu(subject_name):
     TASK2CTG = get_cmmlu_mapping()
     if subject_name == 'hm':
-        subjects_dict = {key: value for key, value in TASK2CTG.items() if value == 'Arts & Humanities'}
+        subjects_dict = {key: value for key, value in TASK2CTG.items() if value == 'Humanities'}
     elif subject_name == 'st':
-        subjects_dict = {key: value for key, value in TASK2CTG.items() if value == 'Natural Sciences'}
+        subjects_dict = {key: value for key, value in TASK2CTG.items() if value == 'STEM'}
     elif subject_name == 'ss':
         subjects_dict = {key: value for key, value in TASK2CTG.items() if value == 'Social Sciences'}
     else:

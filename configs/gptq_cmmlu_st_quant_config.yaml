@@ -1,20 +1,15 @@
 quant_config:
-  algo: rtn
+  algo: gptq
   kwargs:
-    w_dtype: int8    # select from ['int2', 'int3', 'int4', 'int8', 'float16']
-    a_dtype: int8   # select from ['int2', 'int3', 'int4', 'int8', 'float16']
-    calibrate_seq_length: 2048
+    w_dtype: int4    # select from ['int2', 'int3', 'int4', 'int8', 'float16']
+    a_dtype: float16
     device: 'cuda'
     offload: 'cpu'
-    w_groupsize: -1
-    a_groupsize: -1
-    a_qtype: "per_tensor"              
-    w_qtype: "per_channel"             
-    w_has_zero: False
-    a_has_zero: False
-    w_unsign: True
-    a_unsign: True
-    quantization_type: 'static'
+    blocksize: 128 
+    percdamp: .01
+    actorder: True
+    w_groupsize: -1        
+    w_qtype: "per_channel"  #select from ['per_channel', 'per_group']                    
     block_sequential: True
     layer_sequential: True
     skip_layers:                   # the linear layer to skip, should match the module name

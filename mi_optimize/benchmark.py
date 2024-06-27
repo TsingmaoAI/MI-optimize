@@ -118,7 +118,7 @@ class Benchmark:
         
         return results
     
-    def eval_cmmlu(self, model, tokenizer, model_type='baichuan', subject='all', split='test', num_shot=0):
+    def eval_cmmlu(self, model, tokenizer, model_type='baichuan', subject='hm', split='test', num_shot=0):
         results = {}
         subject_dict = get_subjects_cmmlu(subject)
         for subject in tqdm(subject_dict):
