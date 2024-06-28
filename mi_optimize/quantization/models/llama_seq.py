@@ -141,7 +141,7 @@ def llama_sequential(model, algo, data, **kwargs):
                         layer.quantize()  
                         layer.set_default_quantizer(0)
                         del layer.core.weight
-                        # layer.to(offload)
+                        layer.to(offload)
                         clear_mem()
                 del subset
                 

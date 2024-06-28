@@ -14,7 +14,7 @@ def main(args):
     # Define quantization configuration
     with open(args.quant_config, 'r') as file:
         config = yaml.safe_load(file)
-
+    print(config['quant_config']['kwargs']['device'])
     # Load the pre-trained Hugging Face model
     model = AutoModelForCausalLM.from_pretrained(args.model, trust_remote_code=True).half()  
     tokenizer = LlamaTokenizer.from_pretrained(args.model)
@@ -86,6 +86,7 @@ def main(args):
 
 
     ##### save model #####
+    quant_model.to('cpu')
     quant_model = export_module(quant_model)
     torch.save(quant_model, args.save)
 
@@ -97,6 +98,8 @@ def main(args):
     with open(output_path, "w") as f:
         json.dump(results_json, f, indent=4)
 
+
+    logging.info("Process Finished!")
 
     
 if __name__=='__main__':

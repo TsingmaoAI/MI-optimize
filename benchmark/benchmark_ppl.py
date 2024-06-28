@@ -21,7 +21,7 @@ def main(args: argparse.Namespace):
     # Benchmark ceval
     logging.info("\nEvaluating the model on the ppl_benchmark...")
     benchmark = Benchmark()
-    results = benchmark.eval_ppl(model=model, tokenizer=tokenizer, test_dataset=args.task)
+    results = benchmark.eval_ppl(model=model, tokenizer=tokenizer, test_datasets=args.eval_tasks)
     logging.info(results)
 
     # Output ceval results if specified
@@ -32,9 +32,9 @@ def main(args: argparse.Namespace):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Evaluate the model on ceval_benchmark.')
     parser.add_argument('--model', type=str, required=True, help='Path to the model file or Huggingface model identifier.')
-    parser.add_argument('--quantized_model', action='store_true', help='Whether to use a quantized model.')
+    parser.add_argument('--quantized-model', action='store_true', help='Whether to use a quantized model.')
     parser.add_argument('--device', type=str, default='cuda',  help='Device to run the model on.')
-    parser.add_argument('--task', nargs='+', default=["wikitext2"])
-    parser.add_argument('--output_json', type=str, default=None, help='Path to save the ceval results in JSON format.')
+    parser.add_argument('--eval-tasks', nargs='+', default=["wikitext2"])
+    parser.add_argument('--output-json', type=str, default=None, help='Path to save the ceval results in JSON format.')
     args = parser.parse_args()
     main(args)

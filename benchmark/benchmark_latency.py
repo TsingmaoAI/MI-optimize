@@ -18,6 +18,8 @@ def main(args: argparse.Namespace):
         model = AutoModelForCausalLM.from_pretrained(args.model_path)
         tokenizer = AutoTokenizer.from_pretrained(args.model_path)
 
+    model.to(args.device)
+
     def run_to_completion():
         start_time = time.perf_counter()
         with torch.no_grad():
@@ -25,6 +27,7 @@ def main(args: argparse.Namespace):
                 inputs = torch.randn(args.batch_size, args.input_len).to(args.device)
                 model(inputs)
             else:
+                tokenizer.pad_token = tokenizer.eos_token
                 inputs = tokenizer(["Hello, world!"] * args.batch_size, return_tensors="pt", padding=True, truncation=True)
                 inputs = {k: v.to(args.device) for k, v in inputs.items()}
                 model(**inputs)
@@ -60,13 +63,13 @@ def main(args: argparse.Namespace):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Benchmark the latency of processing a single batch of requests.')
-    parser.add_argument('--model_path', type=str, required=True, help='Path to the model file or Huggingface model identifier.')
-    parser.add_argument('--quantized_model', action='store_true', help='Whether to use a quantized model.')
-    parser.add_argument('--input_len', type=int, default=32, help='Length of the input sequence.')
-    parser.add_argument('--batch_size', type=int, default=8, help='Batch size for inference.')
-    parser.add_argument('--device', type=str, default='cuda', choices=['cuda', 'cpu'], help='Device to run the model on.')
-    parser.add_argument('--num_iters_warmup', type=int, default=10, help='Number of iterations to run for warmup.')
-    parser.add_argument('--num_iters', type=int, default=30, help='Number of iterations to run for benchmarking.')
-    parser.add_argument('--output_json', type=str, default=None, help='Path to save the latency results in JSON format.')
+    parser.add_argument('--model-path', type=str, required=True, help='Path to the model file or Huggingface model identifier.')
+    parser.add_argument('--quantized-model', action='store_true', help='Whether to use a quantized model.')
+    parser.add_argument('--input-len', type=int, default=32, help='Length of the input sequence.')
+    parser.add_argument('--batch-size', type=int, default=8, help='Batch size for inference.')
+    parser.add_argument('--device', type=str, default='cuda', help='Device to run the model on.')
+    parser.add_argument('--num-iters-warmup', type=int, default=10, help='Number of iterations to run for warmup.')
+    parser.add_argument('--num-iters', type=int, default=30, help='Number of iterations to run for benchmarking.')
+    parser.add_argument('--output-json', type=str, default=None, help='Path to save the latency results in JSON format.')
     args = parser.parse_args()
     main(args)
