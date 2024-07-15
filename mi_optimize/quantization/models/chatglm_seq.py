@@ -9,11 +9,10 @@ from mi_optimize.quantization.quantizer import *
 from mi_optimize.memory import clear_mem
 
 def chatglm_sequential(model, algo, data, **kwargs):
-    device = kwargs.get('device')
-    offload = kwargs.get('offload')
-    
-    block_sequential = kwargs.get('block_sequential')
-    layer_sequential = kwargs.get('layer_sequential') 
+    device = kwargs.get('device', 'cuda')
+    offload = kwargs.get('offload', 'cpu')
+    block_sequential = kwargs.get('block_sequential', False)
+    layer_sequential = kwargs.get('layer_sequential', False) 
     
     with torch.no_grad() :
         replace_module(model, exclude_layers=kwargs.get('skip_layers'), include_layers=['.*'])

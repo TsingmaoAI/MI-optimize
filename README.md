@@ -30,23 +30,23 @@ Here's a concise version of the description for the MI-optimize framework:
 ![Framework Diagram](framework.png "MI-optimize Framework Overview")
 
 ## Features
+- Support for various quantization algorithms, including:
+  - RTN
+  - GPTQ
+  - AWQ
+  - SPQR
+  - ZeroQuant
+  - SmoothQuant
+  - QuIP
+  - FP8
+  - GPTQ + AWQ
+  - SmoothQuant + GPTQ
 
-### Quantization of Large Language Models (LLMs)
-- **Reduce Computational and Memory Requirements**: Optimizes large language models for deployment in resource-limited environments using advanced quantization techniques.
+-  Supports a variety of datasets for calibration and testing, including CEVAL, CMMLU, BOSS, lm-evaluation-harness, and user-provided custom datasets.
 
-### Support for Various Quantization Algorithms
-- **Broad Selection**: Includes a wide range of quantization algorithms, such as RTN, GPTQ, AWQ, SPQR, ZeroQuant, SmoothQuant, QuIP, FP8, and combinations like AWQ+GPTQ and SmoothQuant+GPTQ.
-
-### Evaluation on Out-of-Distribution (OOD) Tasks
-- **Robust Performance Evaluation**: Uses established benchmarks like BOSS to ensure models maintain performance on OOD tasks.
-
-### Support for Multiple Datasets
-- **Extensive Dataset Compatibility**: Supports a variety of datasets for calibration and testing, including user-provided custom datasets.
-
-### Advanced Quantization Features
-- **Flexible Application**: Allows combination of different quantization methods within the same model for enhanced performance and efficiency.
-- **Ease of Expansion**: Modular design facilitates easy addition of new quantization algorithms to remain up-to-date with advancements.
-- **Custom Tools**: Offers tools for users to quantize and evaluate their own models, ensuring optimal performance tailored to specific needs.
+- Allows combination of different quantization methods within the same model for enhanced performance and efficiency.
+- Modular design facilitates easy addition of new quantization algorithms to remain up-to-date with advancements.
+- Offers tools for users to quantize and evaluate their own models, ensuring optimal performance tailored to specific needs.
 
 ## Installation
 
@@ -86,39 +86,54 @@ python examples/quantize_eval.py --model {model_to_path} --quant-config ./config
 ### Quantization 
 Below is an example of how to set up the quantization process for a model. For detailed information on all available quantization configuration options, please refer to the [quantization configuration guide](configs/quantization_config.md).
 ```
-# Import necessary libraries
 import torch
 from transformers import AutoModelForCausalLM, LlamaTokenizer
 from mi_optimize import quantize
 from mi_optimize.export import export_module
 
 # Define paths for the pre-trained model and quantized model
-# model_path = 'meta-llama/Llama-2-7b-hf'
-
+model_path = 'meta-llama/Llama-2-7b-hf'
 quant_path = 'llama-2-7b-quant.pth'
 
 # Define quantization configuration
 quant_config = {
     "algo": "rtn",
-    "kwargs": {'w_dtype': "int8", 'a_dtype': "int8"},
-    "calibrate_name": "cmmlu"  # select from  ['wikitext2', 'c4', 'ptb', 'cmmlu_all'] 
- }
+    "kwargs": {
+        "w_dtype": "int4",           
+        "a_dtype": "float16",        
+        "device": "cuda",
+        "offload": "cpu",
+        "w_qtype": "per_channel",
+        "w_has_zero": False,
+        "w_unsign": True,
+        "quantization_type": "static",
+        "layer_sequential": True,
+        "skip_layers": [             
+            "lm_head"
+        ]
+    },
+    "calibrate_config": {
+        "name": "wikitext2",
+        "split": "train",
+        "nsamples": 1,
+        "seqlen": 2048
+    }}
 
 # Load the pre-trained Hugging Face model
 model = AutoModelForCausalLM.from_pretrained(model_path, trust_remote_code=True).half().cuda()  
 tokenizer = LlamaTokenizer.from_pretrained(model_path)
 
 # Quantize the model
-model = quantize(model=model, tokenizer=tokenizer, quant_config=quant_config)
+quantize_model = quantize(model=model, tokenizer=tokenizer, quant_config=quant_config)
 
-print(model)
-model.cuda()
-
+# print('model device', model.device)
+quantize_model.to('cuda')
+print(quantize_model)
 input_text = "Llama is a large language model"
 
-input_ids = tokenizer.encode(input_text, return_tensors="pt").to(model.device)
+input_ids = tokenizer.encode(input_text, return_tensors="pt").to(quantize_model.device)
 
-output = model.generate(input_ids, num_return_sequences=1)
+output = model.generate(input_ids, max_length=20, num_return_sequences=1, do_sample= False)
 
 decoded_output = tokenizer.decode(output[0], skip_special_tokens=True)
 print(decoded_output)
@@ -327,13 +342,7 @@ This table summarizes the performance evaluation across various datasets, highli
 |         | CE-SS | CM-SS | 27.4 | 24.4 | CE-SS | CM-SS | 26.7 | 24.5 |
 |         | CE-ST | CM-ST | 32.2 | 25.5 | CE-ST | CM-ST | 26.2 | 23.9 |
 
-Note: W/A Calib. represents the Weight and Activation calibration configuration used for each test. Each row details the results using different datasets as calibration sets on the same test dataset.
-
-## Contact Us
-| Contact Us                |                      |
-|---------------------------|----------------------|
-| **QQ Group**  |**WeChat**|
-| <img src="QQGroup.jpg" width="100"> | <img src="WeChat.jpg" width="100"> |
+Note: W/A Calib. represents the Weight and Activation calibration configuration used for each test. Each row details the results using different datasets as calibration sets on the same test dataset
 
 
 ## Cite

@@ -12,30 +12,33 @@ def clear_mem():
     torch.cuda.empty_cache()
 
 def show_memory():
-    pynvml.nvmlInit()
-    handle = pynvml.nvmlDeviceGetHandleByIndex(0)
+    used_memory = torch.cuda.memory_allocated() / (1024 ** 3)  # 转换为GB
+    print(f"Used GPU Memory: {used_memory:.2f} GB")
+
+    # pynvml.nvmlInit()
+    # handle = pynvml.nvmlDeviceGetHandleByIndex(0)
     
-    cpu_memory = psutil.virtual_memory()
-    cpu_total = cpu_memory.total/1024**3
-    cpu_used = cpu_memory.used/1024**3
+    # cpu_memory = psutil.virtual_memory()
+    # cpu_total = cpu_memory.total/1024**3
+    # cpu_used = cpu_memory.used/1024**3
     
-    cuda_info = pynvml.nvmlDeviceGetMemoryInfo(handle)
-    cuda_total = cuda_info.total/1024**2
-    cuda_used = cuda_info.used/1024**2
+    # cuda_info = pynvml.nvmlDeviceGetMemoryInfo(handle)
+    # cuda_total = cuda_info.total/1024**2
+    # cuda_used = cuda_info.used/1024**2
     
-    torch_cuda_allocated = torch.cuda.memory_allocated()/1024**2 
-    torch_cuda_reserved = torch.cuda.memory_reserved()/1024**2 
+    # torch_cuda_allocated = torch.cuda.memory_allocated()/1024**2 
+    # torch_cuda_reserved = torch.cuda.memory_reserved()/1024**2 
     
-    print(f"\n**************************** Current Memory ****************************\n")
-    print(f"    Total CPU Memory: {cpu_total:10.2f} GB | Used CPU Memory: {cpu_used:10.1f} GB")
-    print(f"    -----------------------------------------------------------------")
-    print(f"    Total GPU Memory: {cuda_total:10.2f} MB | Used GPU Memory: {cuda_used:10.2f} MB")
-    print(f"    -----------------------------------------------------------------")
-    print(f"    Torch_Cuda_Alloc: {torch_cuda_allocated:10.2f} MB | Torch_Cuda_Rsrv: {torch_cuda_reserved:10.2f} MB")
-    print(f"\n**************************** Current Memory ****************************\n")
+    # print(f"\n**************************** Current Memory ****************************\n")
+    # print(f"    Total CPU Memory: {cpu_total:10.2f} GB | Used CPU Memory: {cpu_used:10.1f} GB")
+    # print(f"    -----------------------------------------------------------------")
+    # print(f"    Total GPU Memory: {cuda_total:10.2f} MB | Used GPU Memory: {cuda_used:10.2f} MB")
+    # print(f"    -----------------------------------------------------------------")
+    # print(f"    Torch_Cuda_Alloc: {torch_cuda_allocated:10.2f} MB | Torch_Cuda_Rsrv: {torch_cuda_reserved:10.2f} MB")
+    # print(f"\n**************************** Current Memory ****************************\n")
     
-    pynvml.nvmlShutdown()
-    return cpu_used, cuda_used
+    # pynvml.nvmlShutdown()
+    # return cpu_used, cuda_used
 
 class Memory:
     def __init__(self, name, value, desc, path) -> None:

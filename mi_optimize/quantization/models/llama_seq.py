@@ -6,14 +6,14 @@ from tqdm import tqdm
 from ..utils import replace_module, find_layers
 from ..layers import LinearQuantHub
 from mi_optimize.quantization.quantizer import *
-from mi_optimize.memory import clear_mem
+from mi_optimize.memory import clear_mem, show_memory
 
 @torch.no_grad()
 def llama_sequential(model, algo, data, **kwargs):
-    device = kwargs['device']
-    offload = kwargs['offload']
-    block_sequential = kwargs['block_sequential']
-    layer_sequential = kwargs['layer_sequential'] 
+    device = kwargs.get('device', 'cuda')
+    offload = kwargs.get('offload', 'cpu')
+    block_sequential = kwargs.get('block_sequential', False)
+    layer_sequential = kwargs.get('layer_sequential', False)
     
     with torch.no_grad() :
         replace_module(model, exclude_layers=kwargs['skip_layers'], include_layers=['.*'])
@@ -107,7 +107,7 @@ def llama_sequential(model, algo, data, **kwargs):
 
                 for j in range(len(data)):
                     _ = block(inputs[j].to(device), attention_mask=attention_mask[j].to(device), position_ids=position_ids[j].to(device))[0].to(offload)
-
+                
                 for name, layer in tqdm(subset.items()):
                     if algo=='awq+gptq':
                         layer.remove_hook()
@@ -144,12 +144,12 @@ def llama_sequential(model, algo, data, **kwargs):
                         layer.to(offload)
                         clear_mem()
                 del subset
-                
+            
             if block_sequential:
                 for j in range(len(data)):
                     quant_outputs[j] = block(inputs[j].to(device), attention_mask=attention_mask[j].to(device), position_ids=position_ids[j].to(device))[0].to(offload) 
-
-            #layers[i] = block.to(offload)
+            
+            layers[i] = block.to(offload)
             del block
             clear_mem()
             if block_sequential:

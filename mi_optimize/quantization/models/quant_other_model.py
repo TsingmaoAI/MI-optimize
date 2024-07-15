@@ -10,8 +10,8 @@ from mi_optimize.memory import clear_mem
 
 @torch.no_grad()
 def quant_other_model(model, algo, data, **kwargs):
-    device = kwargs.get('device')
-    offload = kwargs.get('offload')
+    device = kwargs.get('device', 'cuda')
+    offload = kwargs.get('offload', 'cpu')
     
     model = model.to(device)
     logging.info('\n==== replace linear modules ====')

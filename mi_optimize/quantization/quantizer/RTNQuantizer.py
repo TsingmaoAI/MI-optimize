@@ -80,6 +80,9 @@ class LinearRTNQuantizer(BaseQuantizer):
         elif self.wbit == Precision.FP32:
             w = self.quant_hub_linear.core.weight.float().to(x)
         else:
+            # print('w', self.fake_w.device)
+            # print('x', x.device)
+            # exit()
             w = self.fake_w.to(x)
 
         bias = None if self.quant_hub_linear.core.bias is None else self.quant_hub_linear.core.bias.to(x)
