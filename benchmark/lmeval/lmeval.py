@@ -8,10 +8,6 @@ import torch.nn.functional as F
 from benchmark.lmeval import utils
 from tqdm import tqdm
 
-with open("./configs/datasets_path.yaml") as file:
-    dataset_config = yaml.safe_load(file)
-
-
 def get_loglikelihood(model, tokenizer, requests, max_length=2048):
     args_list = []
     for req in requests:
