@@ -8,8 +8,9 @@ def main(args):
 
     # Load Model && tokenizer
     tokenizer = LlamaTokenizer.from_pretrained(args.model)
-    # model = AutoModelForCausalLM.from_pretrained(model_path, trust_remote_code=True).half().cuda()
-    model = torch.load(args.quant_model)
+    model = AutoModelForCausalLM.from_pretrained(args.model, trust_remote_code=True).half().cuda()
+    
+    # model = torch.load(args.quant_model)
     print(model)
     model = model.eval()
 
