@@ -156,17 +156,6 @@ def get_calibrate_cmmlu(tokenizer, calibrate_subject='all', split='test', calibr
         inputs_ids.append(input_ids[:calibrate_seqlen])
     return inputs_ids
         
-def get_testdata_cmmlu(subject='all', split='test', question='all', shuffle=False, seed=42, answer=True):
-    CMMLU_question_list = get_cmmlu(subject=subject, split=split, question=question, shuffle=shuffle, seed=seed, answer=answer)
-    
-    question_list = []
-    answer_list = []
-    for CMMLU_question in CMMLU_question_list:
-        question_list.append(CMMLU_question[:-1])
-        answer_list.append(CMMLU_question[-1].strip().upper())
-    
-    return question_list, answer_list
-
 
 def get_fewshot_cmmlu(subject='all', split='test', question=5, shuffle=False, seed=42, answer=True, model_name=""):
     CMMLU_content_list = get_cmmlu(subject=subject, split=split, question=question, shuffle=shuffle, seed=seed, answer=answer)
@@ -187,6 +176,18 @@ def get_fewshot_cmmlu(subject='all', split='test', question=5, shuffle=False, se
         prompt = None
 
     return prompt
+
+
+def get_testdata_cmmlu(subject='all', split='test', question='all', shuffle=False, seed=42, answer=True):
+    CMMLU_question_list = get_cmmlu(subject=subject, split=split, question=question, shuffle=shuffle, seed=seed, answer=answer)
+    
+    question_list = []
+    answer_list = []
+    for CMMLU_question in CMMLU_question_list:
+        question_list.append(CMMLU_question[:-1])
+        answer_list.append(CMMLU_question[-1].strip().upper())
+    
+    return question_list, answer_list
 
 
 def extract_cot_answer_cmmlu(question, response):
@@ -230,3 +231,29 @@ def extract_cot_answer_cmmlu(question, response):
         return answer
     
     return '-'
+
+
+def classifi_results_cmmlu(results):
+    TASK2CTG = get_cmmlu_mapping()
+    all_results = {}
+    all_results['subjects'] = {}
+    all_results['categories'] = {}
+    
+    for sub, stats in results.items():
+        total = int(stats.split(' ')[3])
+        correct = int(stats.split(' ')[1])
+        ratio = float(stats.split(' ')[5])
+
+        if sub in TASK2CTG:
+            category = TASK2CTG[sub]
+            if category not in all_results['categories']:
+                all_results['categories'][category] = {'total': total, 'correct': correct}
+            else:
+                all_results['categories'][category]['total'] += total
+                all_results['categories'][category]['correct'] += correct
+            all_results['subjects'][sub] = {'total': total, 'correct': correct, 'ratio': ratio}
+
+    for category in all_results['categories']:
+        all_results['categories'][category]['ratio'] = all_results['categories'][category]['correct'] / all_results['categories'][category]['total']
+
+    return all_results

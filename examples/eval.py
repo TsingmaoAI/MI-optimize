@@ -8,8 +8,9 @@ def main(args):
 
     # Load Model && tokenizer
     tokenizer = LlamaTokenizer.from_pretrained(args.model)
-    # model = AutoModelForCausalLM.from_pretrained(model_path, trust_remote_code=True).half().cuda()
-    model = torch.load(args.quant_model)
+    model = AutoModelForCausalLM.from_pretrained(args.model, trust_remote_code=True).half().cuda()
+    
+    # model = torch.load(args.quant_model)
     print(model)
     model = model.eval()
 
@@ -27,7 +28,7 @@ def main(args):
 
     # Evaluate the model on the mmlu benchmark
     if args.eval_cmmlu:
-        results = benchmark.eval_cmmlu(model, tokenizer, model_type='llama', subject='all', data_set='test-source', num_shot=0)
+        results = benchmark.eval_cmmlu(model, tokenizer, model_type='llama', subject='all', split='test-source', num_shot=0)
         print(results)
 
     # Evaluate the model on the BOSS benchmark

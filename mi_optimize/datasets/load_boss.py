@@ -11,7 +11,7 @@ from collections import Counter
 
 def get_boss(task_name, dataset_name, split, shuffle=False, seed=42):
     SA_label_mapping = {"0":"negative", "1":"positive", "2":"neutral"}
-    NLI_label_mapping = {"0":"entailment", "1":"neutral","2":"contradiction" }
+    NLI_label_mapping = {"0":"entailment", "1":"neutral","2":"contradiction"}
     TD_label_mapping = {"0":"benign","1":"toxic"}
     data_dir = f"mi_optimize/datasets/BOSS/{task_name}/{dataset_name}"
     if task_name == "QuestionAnswering":
@@ -132,7 +132,7 @@ Solve the extractive question answering task. Refering to the passage below and 
 Passage: {{Passage}} // Question: {{Question}} // Answer: {{Answer}}.\n\
 ### Example ###\n"
         if dataset_name == 'squad':
-            example =  "Passage: Everton F.C. is a limited company with the board of directors holding a majority of the shares. The club\'s most recent accounts, from May 2014, show a net total debt of £28.1 million, with a turnover of £120.5 million and a profit of £28.2 million. The club\'s overdraft with Barclays Bank is secured against the Premier League\'s \"Basic Award Fund\", a guaranteed sum given to clubs for competing in the Premier League. Everton agreed a long-term loan of £30 million with Bear Stearns and Prudential plc in 2002 over the duration of 25 years; a consolidation of debts at the time as well as a source of capital for new player acquisitions. Goodison Park is secured as collateral. // Question: How long does Everton FC have to pay back £30 million they borrowed from Bear Stearns and Prudential? // Answer: 25 years.\n"
+            example = "Passage: Everton F.C. is a limited company with the board of directors holding a majority of the shares. The club\'s most recent accounts, from May 2014, show a net total debt of £28.1 million, with a turnover of £120.5 million and a profit of £28.2 million. The club\'s overdraft with Barclays Bank is secured against the Premier League\'s \"Basic Award Fund\", a guaranteed sum given to clubs for competing in the Premier League. Everton agreed a long-term loan of £30 million with Bear Stearns and Prudential plc in 2002 over the duration of 25 years; a consolidation of debts at the time as well as a source of capital for new player acquisitions. Goodison Park is secured as collateral. // Question: How long does Everton FC have to pay back £30 million they borrowed from Bear Stearns and Prudential? // Answer: 25 years.\n"
         
         if dataset_name == 'advqa':
             example = "Passage: The northeastern Puntland region has around six private radio stations, including Radio Garowe, Radio Daljir, Radio Codka-Nabbada and Radio Codka-Mudug. Radio Gaalkacyo, formerly known as Radio Free Somalia, operates from Galkayo in the north-central Mudug province. Additionally, the Somaliland region in the northwest has one government-operated radio station. // Question: Hassan Moalim is chairman of the __ Party. // Answer: Daljir.\n"
