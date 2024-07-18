@@ -22,7 +22,7 @@ def main(args):
 
     if backend == 'naive':
         start_time = time.time()
-        output = model.generate(input_ids, max_length=100, num_return_sequences=1, do_sample= False)
+        output = model.generate(input_ids, max_length=100, num_return_sequences=1, do_sample=False)
         decoded_output = tokenizer.decode(output[0], skip_special_tokens=True)
         print(decoded_output)
         print(f'quantize time {time.time() - start_time}')

@@ -34,7 +34,7 @@ _HOMEPAGE = "https://cevalbenchmark.com"
 
 _LICENSE = "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License"
 
-_URL = r"/home/wf/datasets/ceval-exam/ceval-exam.zip"
+_URL = r"/ceval-exam/ceval-exam.zip"
 
 task_list = [
     "computer_network",

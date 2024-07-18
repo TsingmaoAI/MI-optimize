@@ -28,7 +28,7 @@ def main(args):
 
     # Evaluate the model on the mmlu benchmark
     if args.eval_cmmlu:
-        results = benchmark.eval_cmmlu(model, tokenizer, model_type='llama', subject='all', data_set='test-source', num_shot=0)
+        results = benchmark.eval_cmmlu(model, tokenizer, model_type='llama', subject='all', split='test-source', num_shot=0)
         print(results)
 
     # Evaluate the model on the BOSS benchmark

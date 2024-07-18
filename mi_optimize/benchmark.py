@@ -5,8 +5,8 @@ import collections
 from tqdm import tqdm
 
 from mi_optimize.datasets import get_wikitext2, get_ptb, get_c4
-from mi_optimize.datasets.load_ceval import get_subjects_ceval, get_testdaset_ceval, get_fewshot_ceval, extract_cot_answer_ceval
-from mi_optimize.datasets.load_cmmlu import get_subjects_cmmlu, get_testdata_cmmlu, get_fewshot_cmmlu, extract_cot_answer_cmmlu
+from mi_optimize.datasets.load_ceval import get_subjects_ceval, get_testdaset_ceval, get_fewshot_ceval, extract_cot_answer_ceval, classifi_results_ceval
+from mi_optimize.datasets.load_cmmlu import get_subjects_cmmlu, get_testdata_cmmlu, get_fewshot_cmmlu, extract_cot_answer_cmmlu, classifi_results_cmmlu
 from mi_optimize.datasets.load_boss import get_fewshot_boss, get_zeroshot_boss, get_testdata_boss
 from benchmark.boss.metrics import compute_metric
 from transformers import pipeline
@@ -114,9 +114,10 @@ class Benchmark:
             res_str = f"correct: {correct} total: {count} ratio: {ratio}"
             results.update({f"{subject}": res_str})
 
-            print(res_str)
+            # print(res_str)
         
-        return results
+        all_results = classifi_results_ceval(results)
+        return all_results
     
     def eval_cmmlu(self, model, tokenizer, model_type='baichuan', subject='all', split='test', num_shot=0):
         results = {}
@@ -164,24 +165,23 @@ class Benchmark:
             res_str = f"correct: {correct} total: {count} ratio: {ratio}"
             results.update({f"{subject}": res_str})
 
-            print(res_str)
+            # print(res_str)
         
-        return results
+        all_results = classifi_results_cmmlu(results)
+        return all_results
 
     def eval_boss(self, model, tokenizer, test_dataset, split='test', ICL_split='test', num_shot=0):
         MAX_TOKENS = {
-        "SentimentAnalysis": 2,
-        "ToxicDetection": 1,
-        "NaturalLanguageInference": 1,
-        "NameEntityRecognition": 50,
-        "QuestionAnswering": 5}
+            "SentimentAnalysis": 2,
+            "ToxicDetection": 1,
+            "NaturalLanguageInference": 1,
+            "NameEntityRecognition": 50,
+            "QuestionAnswering": 5
+        }
 
         logging.info("Evaluating the model on the boss benchmark")
 
-        generator = pipeline(task="text-generation",
-                     model=model,
-                     tokenizer=tokenizer,
-                     device='cuda')
+        generator = pipeline(task="text-generation", model=model, tokenizer=tokenizer, device='cuda')
 
         results = {}
         test_dataset = test_dataset.split("_")
