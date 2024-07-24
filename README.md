@@ -344,7 +344,7 @@ This table summarizes the performance evaluation across various datasets, highli
 
 Note: W/A Calib. represents the Weight and Activation calibration configuration used for each test. Each row details the results using different datasets as calibration sets on the same test dataset
 
-
+## 
 ## Cite
 If you found this work useful, please consider citing:
 ```

@@ -23,6 +23,10 @@ BITMASK = [
     0xff
 ]
 
+try:
+    import quant_cuda
+except:
+    print('CUDA extension not installed.')
 
 class QLinear(QModule):
     def __init__(self, in_channels, out_channels, bias=None, w_bits=4, a_bits=16, w_groupsize=128, a_groupsize=None, a_has_zero=False, a_qtype='per_token', w_has_zero=False, w_qtype='per_channel', quantization_type='dynamic') -> None:
@@ -121,34 +125,52 @@ class QLinear(QModule):
 
     @torch.no_grad()
     def forward(self, x):
-        if self.w_bits<=8:
-            w = self.pack_weight
-            w = self.unpack_weight(qweight=w, wbit=self.w_bits)
-            w = w.t().to(x)
-            out_channel, in_channel = w.shape
-            if self.w_groupsize>0:
-                w = w.reshape(-1, self.w_groupsize)
-            scale = self.w_scale.reshape(-1, 1).to(w)
-            zero = self.w_zero_point.reshape(-1, 1).to(w)
-            w = (w - zero) * scale
-            w = w.reshape(out_channel, in_channel)
-        else:
-            w = self.weight.to(x)
-        if self.smooth_factor is not None:
-            x = x.div(self.smooth_factor.view(1, -1).to(x.device))
-        if self.a_bits <= 8:
-            if self.quantization_type == 'static':
-                scales = self.a_scale.to(x)
-                zero_points = self.a_zero_point.to(x)
-                intx = self.a_quantizer.quantize(x, scale=scales, zero_point=zero_points)
-                x = self.a_quantizer.dequantize(intx, scale=scales, zero_point=zero_points)
-            elif self.quantization_type == 'dynamic':
-                x, scales, zero_points = self.a_quantizer.quantize_dequantize(x)
+        flag=0
+        if flag==0:
+            self.faster = True
+            if x.shape[-1] == x.numel():
+                outshape = list(x.shape)
+                y = self.bias.clone()
+                outshape[-1] = self.bias.numel()
+                dtype = x.dtype
+                if self.faster:
+                    x = x.float()
+                    quant_cuda.vecquant3matmul_faster(x, self.pack_weight, y, self.w_scale, self.w_zero_point)   #TODO: self.pack_weight is erro value
+                else:
+                    x = x.float()
+                    quant_cuda.vecquant3matmul(x, self.qweight, y, self.scales, self.zeros)
+                y = y.to(dtype)
+                return y.reshape(outshape)
+            raise ValueError('Only supports a single token currently.')
+        elif flag==1:
+            if self.w_bits<=8:
+                w = self.pack_weight
+                w = self.unpack_weight(qweight=w, wbit=self.w_bits)
+                w = w.t().to(x)
+                out_channel, in_channel = w.shape
+                if self.w_groupsize>0:
+                    w = w.reshape(-1, self.w_groupsize)
+                scale = self.w_scale.reshape(-1, 1).to(w)
+                zero = self.w_zero_point.reshape(-1, 1).to(w)
+                w = (w - zero) * scale
+                w = w.reshape(out_channel, in_channel)
             else:
-                raise ValueError('quantization_type: {} is not support', self.quantization_type)
-        if self.bias is not None:
-            self.bias = self.bias.to(x)
-        return F.linear(x, w, self.bias)
+                w = self.weight.to(x)
+            if self.smooth_factor is not None:
+                x = x.div(self.smooth_factor.view(1, -1).to(x.device))
+            if self.a_bits <= 8:
+                if self.quantization_type == 'static':
+                    scales = self.a_scale.to(x)
+                    zero_points = self.a_zero_point.to(x)
+                    intx = self.a_quantizer.quantize(x, scale=scales, zero_point=zero_points)
+                    x = self.a_quantizer.dequantize(intx, scale=scales, zero_point=zero_points)
+                elif self.quantization_type == 'dynamic':
+                    x, scales, zero_points = self.a_quantizer.quantize_dequantize(x)
+                else:
+                    raise ValueError('quantization_type: {} is not support', self.quantization_type)
+            if self.bias is not None:
+                self.bias = self.bias.to(x)
+            return F.linear(x, w, self.bias)
 
     @classmethod
     def pack_from_rtn_quantizer(cls, module: LinearRTNQuantizer):

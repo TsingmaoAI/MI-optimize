@@ -1,30 +1,38 @@
 import torch
 import time
+import yaml
 from transformers import AutoModelForCausalLM, LlamaTokenizer
 from mi_optimize import quantize
 from mi_optimize.export import export_module
 
 def main(args):
+    # Define quantization configuration
+    with open(args.quant_config, 'r') as file:
+        config = yaml.safe_load(file)
+    
     # Load the pre-trained Hugging Face model
     model = AutoModelForCausalLM.from_pretrained(args.model, trust_remote_code=True).half().cuda()  
     tokenizer = LlamaTokenizer.from_pretrained(args.model)
-
+    
+    input_text = "Llama is a large language model"
+    input_ids = tokenizer.encode(input_text, return_tensors="pt").to(model.device)
+    
+    output = model.generate(input_ids, max_length=20, num_return_sequences=1, do_sample= False)
+    decoded_output = tokenizer.decode(output[0], skip_special_tokens=True)
+    print('full model outputs:', decoded_output)
+    
     # Quantize the model
     trick = time.time()
-    quant_model = quantize(model=model, tokenizer=tokenizer, quant_config=args.quant_config)
+    quant_model = quantize(model=model, tokenizer=tokenizer, quant_config=config['quant_config'])
     print(f'quantize time is {time.time()-trick}')
-    input_text = "Llama is a large language model"
-
-    input_ids = tokenizer.encode(input_text, return_tensors="pt").to(model.device)
-
-    output = quant_model.generate(input_ids)
-
-    decoded_output = tokenizer.decode(output[0], skip_special_tokens=True)
-    print(decoded_output)
 
     # Save the quantized model
     quant_model = export_module(quant_model)
     torch.save(quant_model, args.save)
+
+    output = quant_model.generate(input_ids, max_length=20, num_return_sequences=1, do_sample= False)
+    decoded_output = tokenizer.decode(output[0], skip_special_tokens=True)
+    print('quantization model outputs:', decoded_output)
 
 if __name__ =='__main__':
     import argparse

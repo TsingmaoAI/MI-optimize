@@ -2,8 +2,8 @@ quant_config:
   algo: rtn
   model_type: "llama"
   kwargs:
-    w_dtype: int8    # select from ['int2', 'int3', 'int4', 'int8', 'float16']
-    a_dtype: int8 # select from ['int2', 'int3', 'int4',  'int8', 'float16']
+    w_dtype: int4    # select from ['int2', 'int3', 'int4', 'int8', 'float16']
+    a_dtype: float16 # select from ['int2', 'int3', 'int4',  'int8', 'float16']
     device: 'cuda'
     offload: 'cpu'
     w_groupsize: -1
@@ -15,8 +15,8 @@ quant_config:
     w_unsign: True
     a_unsign: True
     quantization_type: 'static'
-    block_sequential: True
-    layer_sequential: True
+    block_sequential: False
+    layer_sequential: False
     skip_layers:                   # the linear layer to skip, should match the module name
       - lm_head
   calibrate_config:
