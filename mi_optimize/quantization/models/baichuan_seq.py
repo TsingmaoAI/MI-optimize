@@ -21,7 +21,6 @@ def baichuan_sequential(model, algo, data, **kwargs):
         layers = model.model.layers
         
         model.model.embed_tokens = model.model.embed_tokens.to(device)
-        model.model.norm = model.model.norm.to(device)
         layers[0] = layers[0].to(device)
 
         dtype = next(iter(model.parameters())).dtype
@@ -53,7 +52,6 @@ def baichuan_sequential(model, algo, data, **kwargs):
 
         layers[0] = layers[0].to(offload)
         model.model.embed_tokens = model.model.embed_tokens.to(offload)
-        model.model.norm = model.model.norm.to(offload)
         torch.cuda.empty_cache()
         
         quant_outputs = [None] * len(inputs)
@@ -69,7 +67,7 @@ def baichuan_sequential(model, algo, data, **kwargs):
                 sequential = [
                     ['self_attn.W_pack'],
                     ['self_attn.o_proj'],
-                    ['mlp.up_proj', 'mlp.gate_proj'],#并列还是连续？
+                    ['mlp.up_proj', 'mlp.gate_proj'],
                     ['mlp.down_proj']
                 ]
             else:

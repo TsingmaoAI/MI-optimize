@@ -5,21 +5,11 @@ from transformers import LlamaTokenizer, LlamaForCausalLM
 import argparse
 
 from mi_optimize.quantization.models.baichuan_seq import baichuan_sequential
+from transformers import AutoModelForCausalLM, AutoTokenizer
 from mi_optimize import Benchmark
-from mi_optimize.datasets.data_loader import get_calibrate_dataset
-from .web_demo import run_web_demo
+from mi_optimize.datasets.data_loader import get_calibrate_loader
+# from .web_demo import run_web_demo
 import datetime
-
-def load_model(model_name_or_path):
-    def skip(*args, **kwargs):
-        pass
-
-    torch.nn.init.kaiming_uniform_ = skip
-    torch.nn.init.uniform_ = skip
-    torch.nn.init.normal_ = skip
-    model = LlamaForCausalLM.from_pretrained(model_name_or_path, torch_dtype='auto')
-    return model
-
 
 def print_args(args):
     logging.info(f"--model: {args.model_path}")
@@ -55,14 +45,16 @@ if __name__=='__main__':
     
     print_args(args)
     
-    model = load_model(args.model_path)
+    tokenizer = AutoTokenizer.from_pretrained(args.model_path, trust_remote_code=True)
+    
+    model = AutoModelForCausalLM.from_pretrained(args.model_path, trust_remote_code=True)
         
     model.eval()
     
     tokenizer = LlamaTokenizer.from_pretrained(args.model_path, legacy=False)
     
 
-    calibrate = get_calibrate_dataset(calibrate_name=args.calibrate_name, tokenizer=tokenizer, nsamples=args.num_calibrate, seqlen=args.seqlen)
+    calibrate = get_calibrate_loader(calibrate_name=args.calibrate_name, tokenizer=tokenizer, nsamples=args.num_calibrate, seqlen=args.seqlen)
     tick = time.time()
     
     model = baichuan_sequential(model=model, data=calibrate, **args_dict)
