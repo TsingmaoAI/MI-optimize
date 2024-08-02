@@ -2,7 +2,9 @@ tqdm
 psutil
 pynvml
 primefac
-torch==2.0.1
+torch==2.3.1 
+torchvision==0.18.1 
+torchaudio==2.3.1
 transformers==4.33.0
 
 sentencepiece==0.2.0

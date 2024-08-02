@@ -1,8 +1,5 @@
-from abc import ABC
 import torch
 from torch.nn import functional as F
-import sys
-sys.path.append('../..')
 
 from mi_optimize.quantization import Precision, PRECISION_TO_BIT
 from mi_optimize.quantization.quantizer import LinearRTNQuantizer, LinearGPTQQuantizer, LinearAwqQuantizer, LinearSmoothQuantizer
@@ -60,7 +57,7 @@ class QLinear(QModule):
                 self.register_buffer('w_zero_point', torch.empty([1]))
             else:
                 raise ValueError('not support weight qtype:{}'.format(w_qtype))
-            self.register_buffer('pack_weight', torch.empty(in_channels * w_bits // 32, out_channels, dtype=torch.int32))
+            self.register_buffer('pack_weight', torch.empty(out_channels, in_channels * w_bits // 32, dtype=torch.int32))
         else:
             self.register_buffer('weight', torch.empty(out_channels, in_channels))
             self.register_buffer('w_scale', None)
@@ -125,35 +122,44 @@ class QLinear(QModule):
 
     @torch.no_grad()
     def forward(self, x):
-        flag=0
+        flag=1
         if flag==0:
-            self.faster = True
-            if x.shape[-1] == x.numel():
-                outshape = list(x.shape)
+            faster = False
+            if x.shape[-1] == x.numel():   #TODO support multiple tokens
+                outshape = list(x.shape) 
                 y = self.bias.clone()
+                # y = torch.empty_like(self.bias)
                 outshape[-1] = self.bias.numel()
                 dtype = x.dtype
-                if self.faster:
-                    x = x.float()
-                    quant_cuda.vecquant3matmul_faster(x, self.pack_weight, y, self.w_scale, self.w_zero_point)   #TODO: self.pack_weight is erro value
+                if faster:
+                    x = x.half()
+                    quant_cuda.vecquant4matmul_faster(x, self.pack_weight, y, self.w_scale.reshape(-1, 1), self.w_zero_point.reshape(-1, 1))
                 else:
                     x = x.float()
-                    quant_cuda.vecquant3matmul(x, self.qweight, y, self.scales, self.zeros)
-                y = y.to(dtype)
+                    quant_cuda.vecquant4matmul(x, self.pack_weight, y, self.w_scale.reshape(-1, 1), self.w_zero_point.reshape(-1, 1))
+                # y = y.to(dtype)
                 return y.reshape(outshape)
-            raise ValueError('Only supports a single token currently.')
         elif flag==1:
             if self.w_bits<=8:
                 w = self.pack_weight
-                w = self.unpack_weight(qweight=w, wbit=self.w_bits)
-                w = w.t().to(x)
-                out_channel, in_channel = w.shape
-                if self.w_groupsize>0:
-                    w = w.reshape(-1, self.w_groupsize)
-                scale = self.w_scale.reshape(-1, 1).to(w)
-                zero = self.w_zero_point.reshape(-1, 1).to(w)
-                w = (w - zero) * scale
-                w = w.reshape(out_channel, in_channel)
+                if self.w_bits==4:
+                    y = torch.empty(self.out_channels, self.in_channels).to(w.device)
+                    quant_cuda.int4GroupWeightExtraction(w, self.w_scale, self.w_zero, y, self.w_groupsize)
+                    w = y
+                elif self.w_bits==2:
+                    y = torch.empty(self.out_channels, self.in_channels).to(w.device)
+                    quant_cuda.int4GroupWeightExtraction(w, self.w_scale, self.w_zero, y, self.w_groupsize)
+                    w = y
+                else:
+                    w = self.unpack_weight(qweight=w, wbit=self.w_bits)
+                    w = w.t().to(x)
+                    out_channel, in_channel = w.shape
+                    if self.w_groupsize>0:
+                        w = w.reshape(-1, self.w_groupsize)
+                    scale = self.w_scale.reshape(-1, 1).to(w)
+                    zero = self.w_zero_point.reshape(-1, 1).to(w)
+                    w = (w - zero) * scale
+                    w = w.reshape(out_channel, in_channel)
             else:
                 w = self.weight.to(x)
             if self.smooth_factor is not None:
@@ -218,7 +224,7 @@ class QLinear(QModule):
                     qweight[idx_weight] |= (intweight[i] >> (wbit - 32 + off_weight) )
                     qweight[idx_weight + 1] |= (intweight[i]&BITMASK[wbit - 32 + off_weight-1])
 
-            qlinear.pack_weight.data.copy_(torch.from_numpy(qweight.astype(np.int32)))
+            qlinear.pack_weight.data.copy_(torch.from_numpy(qweight.T))
             if bias is not None:
                 qlinear.bias.data.copy_(bias)
             else:

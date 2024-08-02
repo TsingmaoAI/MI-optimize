@@ -1,7 +1,7 @@
 import torch
 
 from mi_optimize.quantization.utils import replace_module
-from .qnn import QLinear
+from mi_optimize.export.qnn import QLinear
 from mi_optimize.quantization.layers import LinearQuantHub
 from mi_optimize.quantization.quantizer import LinearRTNQuantizer, LinearGPTQQuantizer, LinearSmoothQuantizer, LinearAwqQuantizer
 
