@@ -150,6 +150,8 @@ class QLinear(QModule):
                     quant_cuda.int4GroupWeightExtraction(w, self.w_scale, self.w_zero_point, w_hat, self.w_groupsize)
                     w = w_hat.to(x)
                 elif self.w_bits==2:
+                    if self.w_groupsize==-1:
+                        self.w_groupsize=self.in_channels
                     w_hat = torch.empty(self.out_channels, self.in_channels, device='cuda', dtype=self.w_scale.dtype)
                     quant_cuda.int2GroupWeightExtraction(w, self.w_scale, self.w_zero_point, w_hat, self.w_groupsize)
                     w = w_hat.to(x)
@@ -180,7 +182,6 @@ class QLinear(QModule):
             if self.bias is not None:
                 self.bias = self.bias.to(x)
             return F.linear(x, w, self.bias)
-            
 
     @classmethod
     def pack_from_rtn_quantizer(cls, module: LinearRTNQuantizer):
