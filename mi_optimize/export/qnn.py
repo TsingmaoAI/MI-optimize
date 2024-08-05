@@ -5,6 +5,7 @@ from mi_optimize.quantization import Precision, PRECISION_TO_BIT
 from mi_optimize.quantization.quantizer import LinearRTNQuantizer, LinearGPTQQuantizer, LinearAwqQuantizer, LinearSmoothQuantizer
 from mi_optimize.quantization.quantizer import Quantizer
 import numpy as np
+import time
 
 class QModule(torch.nn.Module):
     pass
@@ -137,21 +138,23 @@ class QLinear(QModule):
                 else:
                     x = x.float()
                     quant_cuda.vecquant4matmul(x, self.pack_weight, y, self.w_scale.reshape(-1, 1), self.w_zero_point.reshape(-1, 1))
-                # y = y.to(dtype)
+                y = y.to(dtype)
                 return y.reshape(outshape)
         elif flag==1:
             if self.w_bits<=8:
                 w = self.pack_weight
                 if self.w_bits==4:
-                    y = torch.empty(self.out_channels, self.in_channels).to(w.device)
-                    quant_cuda.int4GroupWeightExtraction(w, self.w_scale, self.w_zero, y, self.w_groupsize)
-                    w = y
+                    if self.w_groupsize==-1:
+                        self.w_groupsize=self.in_channels
+                    w_hat = torch.empty(self.out_channels, self.in_channels, device='cuda', dtype=self.w_scale.dtype)
+                    quant_cuda.int4GroupWeightExtraction(w, self.w_scale, self.w_zero_point, w_hat, self.w_groupsize)
+                    w = w_hat.to(x)
                 elif self.w_bits==2:
-                    y = torch.empty(self.out_channels, self.in_channels).to(w.device)
-                    quant_cuda.int4GroupWeightExtraction(w, self.w_scale, self.w_zero, y, self.w_groupsize)
-                    w = y
+                    w_hat = torch.empty(self.out_channels, self.in_channels, device='cuda', dtype=self.w_scale.dtype)
+                    quant_cuda.int2GroupWeightExtraction(w, self.w_scale, self.w_zero_point, w_hat, self.w_groupsize)
+                    w = w_hat.to(x)
                 else:
-                    w = self.unpack_weight(qweight=w, wbit=self.w_bits)
+                    w = self.unpack_weight(qweight=w.t(), wbit=self.w_bits)
                     w = w.t().to(x)
                     out_channel, in_channel = w.shape
                     if self.w_groupsize>0:
@@ -177,6 +180,7 @@ class QLinear(QModule):
             if self.bias is not None:
                 self.bias = self.bias.to(x)
             return F.linear(x, w, self.bias)
+            
 
     @classmethod
     def pack_from_rtn_quantizer(cls, module: LinearRTNQuantizer):

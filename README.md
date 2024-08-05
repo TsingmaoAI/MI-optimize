@@ -53,8 +53,8 @@ Here's a concise version of the description for the MI-optimize framework:
 ### Prerequisites
 
 - **Python**: Python 3.7 or higher must be installed on your system. 
-
 - **Libraries**: Ensure that all necessary libraries are installed. These libraries are listed in the `requirements.txt` file. 
+- **torch**: tested on v2.1.0+cu121
 
 ### Install from Source
 

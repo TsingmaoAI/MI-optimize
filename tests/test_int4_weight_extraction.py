@@ -6,7 +6,7 @@ import quant_cuda
 def test_int4GroupWeightExtraction():
     M = 1024
     N = 1024
-    group = 128
+    group = 1024
 
     A = torch.randint(-1000000000, 1000000000, (M , N // 32 *4), device='cuda', dtype=torch.int)
     scales = torch.randn(M, N//group, dtype=torch.float32, device='cuda')

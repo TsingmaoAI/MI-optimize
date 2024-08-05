@@ -25,7 +25,7 @@ def main(args):
         output = model.generate(input_ids, max_length=100, num_return_sequences=1, do_sample=False)
         decoded_output = tokenizer.decode(output[0], skip_special_tokens=True)
         print(decoded_output)
-        print(f'quantize time {time.time() - start_time}')
+        print(f'inference time {time.time() - start_time}')
 
     elif backend == 'vllm':
         pass  # This will be added soon
