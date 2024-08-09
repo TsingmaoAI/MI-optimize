@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 import logging
-import tqdm
+from tqdm import tqdm
 
 from ..utils import replace_module, find_layers
 from ..layers import LinearQuantHub

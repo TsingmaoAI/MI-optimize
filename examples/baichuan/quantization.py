@@ -9,7 +9,7 @@ from mi_optimize.quantization.models.baichuan_seq import baichuan_sequential
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from mi_optimize import Benchmark
 from mi_optimize.datasets.data_loader import get_calibrate_loader
-# from .web_demo import run_web_demo
+from .web_demo import run_web_demo
 import datetime
 
 def print_args(args):
@@ -41,39 +41,40 @@ if __name__=='__main__':
     parser.add_argument('--block-sequential', action='store_true', help='')
     parser.add_argument('--layer-sequential', action='store_true', help='')
     parser.add_argument('--save', type=str, default=None)
+    parser.add_argument('--web-demo', action='store_true', help='')
     args = parser.parse_args()
     args_dict = vars(args)
     
     print_args(args)
     
-    tokenizer = AutoTokenizer.from_pretrained(args.model_path, trust_remote_code=True)
-    
+    # Import Model
+    tokenizer = LlamaTokenizer.from_pretrained(args.model_path, legacy=False)
     model = AutoModelForCausalLM.from_pretrained(args.model_path, trust_remote_code=True)
-        
     model.eval()
     
-    tokenizer = LlamaTokenizer.from_pretrained(args.model_path, legacy=False)
-    
+    # Prepare Calibrate Dataset
     calibrate_config = {"name": args.calibrate_name, "nsamples":args.num_calibrate, "seqlen":args.seqlen}
     calibrate = get_calibrate_loader(tokenizer=tokenizer, calibrate_config=calibrate_config)
+
+    # Quantiaze Model
     tick = time.time()
-    
     model = baichuan_sequential(model=model, data=calibrate, **args_dict)
-    logging.info(f'quantize time {time.time() - tick}')
+    logging.info(f'Quantize Time {time.time() - tick}')
     
+    # Benchmark
     model = model.to(args.device)
     benchmark = Benchmark()
     if args.benchmark == 'ceval':
         # Evaluate the model on the ceval benchmark
-        results_ceval = benchmark.eval_ceval(model=model, tokenizer=tokenizer, model_type='llama', num_shot=args.num_shot)
+        results_ceval = benchmark.eval_ceval(model=model, tokenizer=tokenizer, model_type='baichuan', num_shot=args.num_shot)
         logging.info("\nCeval Benchmark Evaluation Results:")
         logging.info(results_ceval)
         
     if args.benchmark == 'cmmlu':
         # Evaluate the model on the mmlu benchmark
-        results_mmlu = benchmark.eval_cmmlu(model, tokenizer, model_type='llama', num_shot=args.num_shot)
-        logging.info("\nMMLU Benchmark Evaluation Results:")
-        logging.info(results_mmlu)
+        results_cmmlu = benchmark.eval_cmmlu(model, tokenizer, model_type='baichuan', num_shot=args.num_shot)
+        logging.info("\nCMMLU Benchmark Evaluation Results:")
+        logging.info(results_cmmlu)
         
     if args.benchmark == 'boss':
         # Evaluate the model on the BOSS benchmark
@@ -84,11 +85,11 @@ if __name__=='__main__':
     if args.benchmark == 'lmeval':
         # Evaluate using lm-evaluation-harness
         eval_tasks = [
-            "lambada_openai",  # Evaluating language model completion
+            "lambada",         # Evaluating language model completion
             "piqa",            # Evaluating Physical Interaction QA
             "hellaswag",       # Evaluating Common Sense Natural Language Inference
         ]
-        results_lm_evaluation = benchmark.eval_lmeval(model, num_shot=args.num_shot, eval_tasks=eval_tasks)
+        results_lm_evaluation = benchmark.eval_lmeval(model, tokenizer=tokenizer, eval_tasks=eval_tasks, num_shot=args.num_shot)
         logging.info("\nLM Evaluation Harness Evaluation Results:")
         logging.info(results_lm_evaluation)
 
@@ -99,5 +100,5 @@ if __name__=='__main__':
         torch.save(model, args.save)
         
     
-    # if args.web_demo:
-    #     run_web_demo(model, tokenizer)
+    if args.web_demo:
+        run_web_demo(model, tokenizer)

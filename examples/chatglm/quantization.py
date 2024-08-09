@@ -50,38 +50,41 @@ if __name__=='__main__':
     parser.add_argument('--block-sequential', action='store_true', help='')
     parser.add_argument('--layer-sequential', action='store_true', help='')
     parser.add_argument('--save', type=str, default=None)
+    parser.add_argument('--web-demo', action='store_true', help='')
     args = parser.parse_args()
     args_dict = vars(args)
     
     print_args(args)
-    
+
+    # Import Model
+    tokenizer = LlamaTokenizer.from_pretrained(args.model_path, legacy=False)
     model = load_model(args.model_path)
-        
     model.eval()
     
-    tokenizer = LlamaTokenizer.from_pretrained(args.model_path, legacy=False)
-    
-
+    # Prepare Calibrate Dataset
     calibrate_config = {"name": args.calibrate_name, "nsamples":args.num_calibrate, "seqlen":args.seqlen}
     calibrate = get_calibrate_loader(tokenizer=tokenizer, calibrate_config=calibrate_config)
+
+    # Quantiaze Model
     tick = time.time()
-    
     model = chatglm_sequential(model=model, data=calibrate, **args_dict)
-    logging.info(f'quantize time {time.time() - tick}')
+    logging.info(f'Quantize Time {time.time() - tick}')
     
     model = model.to(args.device)
+
+    # Benchmark
     benchmark = Benchmark()
     if args.benchmark == 'ceval':
         # Evaluate the model on the ceval benchmark
-        results_ceval = benchmark.eval_ceval(model=model, tokenizer=tokenizer, model_type='llama', num_shot=args.num_shot)
+        results_ceval = benchmark.eval_ceval(model=model, tokenizer=tokenizer, model_type='chatglm', num_shot=args.num_shot)
         logging.info("\nCeval Benchmark Evaluation Results:")
         logging.info(results_ceval)
         
-    if args.benchmark == 'mmlu':
+    if args.benchmark == 'cmmlu':
         # Evaluate the model on the mmlu benchmark
-        results_mmlu = benchmark.eval_cmmlu(model, tokenizer, model_type='llama', num_shot=args.num_shot)
-        logging.info("\nMMLU Benchmark Evaluation Results:")
-        logging.info(results_mmlu)
+        results_cmmlu = benchmark.eval_cmmlu(model, tokenizer, model_type='chatglm', num_shot=args.num_shot)
+        logging.info("\nCMMLU Benchmark Evaluation Results:")
+        logging.info(results_cmmlu)
         
     if args.benchmark == 'boss':
         # Evaluate the model on the BOSS benchmark
@@ -92,11 +95,11 @@ if __name__=='__main__':
     if args.benchmark == 'lmeval':
         # Evaluate using lm-evaluation-harness
         eval_tasks = [
-            "lambada_openai",  # Evaluating language model completion
+            "lambada",         # Evaluating language model completion
             "piqa",            # Evaluating Physical Interaction QA
             "hellaswag",       # Evaluating Common Sense Natural Language Inference
         ]
-        results_lm_evaluation = benchmark.eval_lmeval(model, num_shot=args.num_shot, eval_tasks=eval_tasks)
+        results_lm_evaluation = benchmark.eval_lmeval(model, tokenizer=tokenizer, eval_tasks=eval_tasks, num_shot=args.num_shot)
         logging.info("\nLM Evaluation Harness Evaluation Results:")
         logging.info(results_lm_evaluation)
 
