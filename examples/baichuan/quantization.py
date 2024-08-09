@@ -1,3 +1,4 @@
+from os import name
 import torch
 import time
 import logging
@@ -16,7 +17,7 @@ def print_args(args):
     logging.info(f"--algo: {args.algo}")
     logging.info(f"--wbit: {args.wbit}")
     logging.info(f"--device: {args.device}")
-    logging.info(f"当前时间是: {datetime.datetime.now()}")
+    logging.info(f"Current Time: {datetime.datetime.now()}")
 
 
 if __name__=='__main__':
@@ -53,8 +54,8 @@ if __name__=='__main__':
     
     tokenizer = LlamaTokenizer.from_pretrained(args.model_path, legacy=False)
     
-
-    calibrate = get_calibrate_loader(calibrate_name=args.calibrate_name, tokenizer=tokenizer, nsamples=args.num_calibrate, seqlen=args.seqlen)
+    calibrate_config = {"name": args.calibrate_name, "nsamples":args.num_calibrate, "seqlen":args.seqlen}
+    calibrate = get_calibrate_loader(tokenizer=tokenizer, calibrate_config=calibrate_config)
     tick = time.time()
     
     model = baichuan_sequential(model=model, data=calibrate, **args_dict)
@@ -98,5 +99,5 @@ if __name__=='__main__':
         torch.save(model, args.save)
         
     
-    if args.web_demo:
-        run_web_demo(model, tokenizer)
+    # if args.web_demo:
+    #     run_web_demo(model, tokenizer)
