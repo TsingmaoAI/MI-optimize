@@ -2,9 +2,9 @@ quant_config:
   algo: rtn
   model_type: "llama"
   kwargs:
-    w_dtype: int8    # select from ['int2', 'int3', 'int4', 'int8', 'float16']
-    a_dtype: int8 # select from ['int2', 'int3', 'int4',  'int8', 'float16']
-    device: 'cuda'
+    w_dtype: int4    # select from ['int2', 'int3', 'int4', 'int8', 'float16']
+    a_dtype: float16 # select from ['int2', 'int3', 'int4',  'int8', 'float16']
+    device: 'cuda:1'
     offload: 'cpu'
     w_groupsize: -1
     a_groupsize: -1

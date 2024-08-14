@@ -2,7 +2,7 @@ tqdm
 psutil
 pynvml
 primefac
-torch==2.0.1
+torch
 transformers==4.33.0
 
 sentencepiece==0.2.0
