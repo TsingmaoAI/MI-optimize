@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 import logging
-import tqdm
+from tqdm import tqdm
 
 from ..utils import replace_module, find_layers
 from ..layers import LinearQuantHub
@@ -18,10 +18,10 @@ def chatglm_sequential(model, algo, data, **kwargs):
         replace_module(model, exclude_layers=kwargs.get('skip_layers'), include_layers=['.*'])
         use_cache = model.config.use_cache
         model.config.use_cache = False
-        layers = model.model.layers
+        layers = model.transformer.encoder.layers
         
-        model.model.embed_tokens = model.model.embed_tokens.to(device)
-        model.model.norm = model.model.norm.to(device)
+        model.transformer.embedding = model.transformer.embedding.to(device)
+        model.transformer.rotary_pos_emb = model.transformer.rotary_pos_emb.to(device)
         layers[0] = layers[0].to(device)
 
         dtype = next(iter(model.parameters())).dtype
@@ -33,10 +33,11 @@ def chatglm_sequential(model, algo, data, **kwargs):
                 self.inputs = []
                 self.attention_mask = []
                 self.rotary_pos_emb = []
-            def forward(self, input, **kwargs):
+                self.kv_cache = []
+            def forward(self, input, attention_mask, rotary_pos_emb, kv_cache, use_cache):
                 self.inputs.append(input)
-                self.attention_mask.append(kwargs['attention_mask'])
-                self.rotary_pos_emb.append(kwargs['rotary_pos_emb'])
+                self.attention_mask.append(attention_mask)
+                self.rotary_pos_emb.append(rotary_pos_emb)
                 raise ValueError
             
         layers[0] = Catcher(layers[0])
@@ -52,8 +53,8 @@ def chatglm_sequential(model, algo, data, **kwargs):
         layers[0] = layers[0].module
 
         layers[0] = layers[0].to(offload)
-        model.model.embed_tokens = model.model.embed_tokens.to(offload)
-        model.model.norm = model.model.norm.to(offload)
+        model.transformer.embedding = model.transformer.embedding.to(offload)
+        model.transformer.rotary_pos_emb = model.transformer.rotary_pos_emb.to(offload)
         torch.cuda.empty_cache()
         
         quant_outputs = [None] * len(inputs)
@@ -63,7 +64,7 @@ def chatglm_sequential(model, algo, data, **kwargs):
             block = layers[i].to(device)
             if not block_sequential:
                 for j in range(len(data)):
-                    fp_outputs[j] = block(inputs[j].to(device), attention_mask=attention_mask[j].to(device), rotary_pos_emb=rotary_pos_emb[j].to(device))[0].to(offload) 
+                    fp_outputs[j] = block(inputs[j].to(device), attention_mask=attention_mask[j] if attention_mask[j]==None else attention_mask[j].to(device), rotary_pos_emb=rotary_pos_emb[j].to(device))[0].to(offload) 
             layer_linear = find_layers(block, (LinearQuantHub))
             if layer_sequential:
                 sequential = [
@@ -105,7 +106,7 @@ def chatglm_sequential(model, algo, data, **kwargs):
                     layer.prepare_hook()
 
                 for j in range(len(data)):
-                    _ = block(inputs[j].to(device), attention_mask=attention_mask[j].to(device), rotary_pos_emb=rotary_pos_emb[j].to(device))[0].to(offload)
+                    _ = block(inputs[j].to(device), attention_mask=attention_mask[j] if attention_mask[j]==None else attention_mask[j].to(device), rotary_pos_emb=rotary_pos_emb[j].to(device))[0].to(offload)
                 for name, layer in tqdm(subset.items()):
                     if algo=='awq+gptq':
                         layer.remove_hook()
@@ -143,7 +144,7 @@ def chatglm_sequential(model, algo, data, **kwargs):
                 del subset
             if block_sequential:
                 for j in range(len(data)):
-                    quant_outputs[j] = block(inputs[j].to(device), attention_mask=attention_mask[j].to(device), rotary_pos_emb=rotary_pos_emb[j].to(device))[0].to(offload) 
+                    quant_outputs[j] = block(inputs[j].to(device), attention_mask=attention_mask[j] if attention_mask[j]==None else attention_mask[j].to(device), rotary_pos_emb=rotary_pos_emb[j].to(device))[0].to(offload) 
 
             # layers[i] = block.to(offload)
             del block

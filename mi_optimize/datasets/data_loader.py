@@ -112,7 +112,7 @@ def get_test_loader(dataset_name, tokenizer, seqlen=2048, nsamples=128, seed=42,
     
     raise ValueError(f"Unknown dataset: {dataset_name}")
 
-def get_calibrate_loader(tokenizer, calibrate_config):
+def get_calibrate_loader(tokenizer, calibrate_config:dict = {}):
     calibrate_name = calibrate_config['name']
     
     if calibrate_name=='wikitext2':

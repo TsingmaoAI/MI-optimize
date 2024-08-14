@@ -25,7 +25,7 @@ def print_args(args):
     logging.info(f"--algo: {args.algo}")
     logging.info(f"--wbit: {args.wbit}")
     logging.info(f"--device: {args.device}")
-    logging.info(f"Current Time: {datetime.datetime.now()}")
+    logging.info(f"当前时间是: {datetime.datetime.now()}")
 
 
 if __name__=='__main__':
@@ -54,23 +54,21 @@ if __name__=='__main__':
     
     print_args(args)
     
-    # Import Model
-    tokenizer = LlamaTokenizer.from_pretrained(args.model_path, legacy=False)
     model = load_model(args.model_path)
+        
     model.eval()
     
-    # Prepare Calibrate Dataset
-    calibrate_config = {"name": args.calibrate_name, "nsamples":args.num_calibrate, "seqlen":args.seqlen}
-    calibrate = get_calibrate_loader(tokenizer=tokenizer, calibrate_config=calibrate_config)
+    tokenizer = LlamaTokenizer.from_pretrained(args.model_path, legacy=False)
+    
 
-    # Quantiaze Model
+    calibrate_config ={'name':args.calibrate_name ,'nsamples':args.num_calibrate,'seqlen':args.seqlen}
+    calibrate = get_calibrate_loader(tokenizer=tokenizer,calibrate_config=calibrate_config)
     tick = time.time()
+    
     model = llama_sequential(model=model, data=calibrate, **args_dict)
-    logging.info(f'Quantize Time {time.time() - tick}')
+    logging.info(f'quantize time {time.time() - tick}')
     
     model = model.to(args.device)
-
-    # Benchmark
     benchmark = Benchmark()
     if args.benchmark == 'ceval':
         # Evaluate the model on the ceval benchmark
@@ -78,11 +76,11 @@ if __name__=='__main__':
         logging.info("\nCeval Benchmark Evaluation Results:")
         logging.info(results_ceval)
         
-    if args.benchmark == 'cmmlu':
+    if args.benchmark == 'mmlu':
         # Evaluate the model on the mmlu benchmark
-        results_cmmlu = benchmark.eval_cmmlu(model, tokenizer, model_type='llama', num_shot=args.num_shot)
-        logging.info("\nCMMLU Benchmark Evaluation Results:")
-        logging.info(results_cmmlu)
+        results_mmlu = benchmark.eval_cmmlu(model, tokenizer, model_type='llama', num_shot=args.num_shot)
+        logging.info("\nMMLU Benchmark Evaluation Results:")
+        logging.info(results_mmlu)
         
     if args.benchmark == 'boss':
         # Evaluate the model on the BOSS benchmark
@@ -93,7 +91,7 @@ if __name__=='__main__':
     if args.benchmark == 'lmeval':
         # Evaluate using lm-evaluation-harness
         eval_tasks = [
-            "lambada",  # Evaluating language model completion
+            "lambada_openai",  # Evaluating language model completion
             "piqa",            # Evaluating Physical Interaction QA
             "hellaswag",       # Evaluating Common Sense Natural Language Inference
         ]

@@ -12,7 +12,7 @@ def main(args):
     # Quantize the model
     trick = time.time()
     quant_model = quantize(model=model, tokenizer=tokenizer, quant_config=args.quant_config)
-    print(f'Quantize time is {time.time()-trick}')
+    print(f'quantize time is {time.time()-trick}')
     input_text = "Llama is a large language model"
 
     input_ids = tokenizer.encode(input_text, return_tensors="pt").to(model.device)

@@ -65,7 +65,7 @@ def llama_sequential(model, algo, data, **kwargs):
             block = layers[i].to(device)
             if not block_sequential:
                 for j in range(len(data)):
-                    fp_outputs[j] = block(inputs[j].to(device), attention_mask=attention_mask[j].to(device), position_ids=position_ids[j].to(device))[0].to(offload) 
+                    fp_outputs[j] = block(inputs[j].to(device), attention_mask=attention_mask[j] if attention_mask[j]==None else attention_mask[j].to(device), position_ids=position_ids[j].to(device))[0].to(offload) 
             layer_linear = find_layers(block, (LinearQuantHub))
             if layer_sequential:
                 sequential = [
