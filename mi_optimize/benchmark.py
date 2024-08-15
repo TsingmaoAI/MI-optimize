@@ -1,3 +1,4 @@
+from email.mime import message
 import logging
 import torch
 import numpy as np
@@ -79,10 +80,7 @@ class Benchmark:
             count = 0
             correct = 0
             for question, answer in zip(question_list, answer_list):
-                if num_shot:
-                    question_prompt = get_fewshot_ceval(subject, model_name=model_type, question=num_shot)
-                else:
-                    question_prompt = ""
+                question_prompt = get_fewshot_ceval(subject, model_type=model_type, num_shot=num_shot)
                 
                 if model_type=='chatglm':
                     response, _ = model.chat(tokenizer, question, do_sample=False, history=question_prompt)
@@ -103,6 +101,17 @@ class Benchmark:
                         can_id = tokenizer.encode(can)[-1]
                         label_score.append(scores[can_id].item())
                     response_answer = candidates[np.argmax(label_score)]
+
+                elif model_type=='qwen':
+                    messages = question_prompt
+                    messages.append({"role": "user", "content": question})
+                    text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+                    model_inputs = tokenizer([text], return_tensors="pt").to(model.device)
+                    generated_ids = model.generate(model_inputs.input_ids, max_new_tokens=512)
+                    generated_ids = [output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)]
+                    response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+                    response = response.strip()
+                    response_answer = extract_cot_answer_ceval(question, response)
 
                 else:
                     raise ValueError(f'not support {model_type}')
@@ -127,11 +136,8 @@ class Benchmark:
             count = 0
             correct = 0
             for question, answer in zip(question_list, answer_list):
-                if num_shot:
-                    question_prompt = get_fewshot_cmmlu(subject, model_name=model_type, question=num_shot)
-                else:
-                    question_prompt = ""
-
+                question_prompt = get_fewshot_cmmlu(subject, model_type=model_type, num_shot=num_shot)
+                
                 if model_type=='chatglm':
                     response, _ = model.chat(tokenizer, question, do_sample=False, history=question_prompt)
                     response = response.strip()
@@ -151,6 +157,17 @@ class Benchmark:
                         can_id = tokenizer.encode(can)[-1]
                         label_score.append(scores[can_id].item())
                     response_answer = candidates[np.argmax(label_score)]
+
+                elif model_type == 'qwen':
+                    messages = question_prompt
+                    messages.append({"role": "user", "content": question})
+                    text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+                    model_inputs = tokenizer([text], return_tensors="pt").to(model.device)
+                    generated_ids = model.generate(model_inputs.input_ids, max_new_tokens=512)
+                    generated_ids = [output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)]
+                    response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+                    response = response.strip()
+                    response_answer = extract_cot_answer_cmmlu(question, response)
 
                 else:
                     raise ValueError(f'not support {model_type}')

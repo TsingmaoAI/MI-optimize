@@ -157,23 +157,33 @@ def get_calibrate_cmmlu(tokenizer, calibrate_subject='all', split='test', calibr
     return inputs_ids
         
 
-def get_fewshot_cmmlu(subject='all', split='test', question=5, shuffle=False, seed=42, answer=True, model_name=""):
-    CMMLU_content_list = get_cmmlu(subject=subject, split=split, question=question, shuffle=shuffle, seed=seed, answer=answer)
-
+def get_fewshot_cmmlu(subject='all', split='test', num_shot=5, shuffle=False, seed=42, answer=True, model_type=""):
     title = f"以下是中国考试的单项选择题，请选出其中的正确答案。"
-    if model_name == "chatglm":
-        prompt = []
-        for content in CMMLU_content_list:
-            prompt.append({'role': 'user', 'content': f"{title}\n{content[:-1]}"})
-            prompt.append({'role': 'assistant', 'metadata': '', 'content': content[-1]})
-
-    elif model_name == "baichuan" or model_name == "llama":
-        prompt = title + "\n"
-        for content in CMMLU_content_list:
-            prompt = prompt + "\n\n" + content
-
+    if num_shot == 0:
+        if model_type == "chatglm" or model_type == 'qwen':
+            prompt = []
+        elif model_type == "baichuan" or model_type == 'llama':
+            prompt = ""
+    
     else:
-        prompt = None
+        cmmlu_content_list = get_cmmlu(subject=[subject], split=split, question=num_shot, shuffle=shuffle, seed=seed, answer=answer)
+        if model_type == "chatglm":
+            prompt = []
+            for content in cmmlu_content_list:
+                prompt.append({'role': 'user', 'content': f"{title}\n{content[:-1]}"})
+                prompt.append({'role': 'assistant', 'metadata': '', 'content': content[-1]})
+
+        elif model_type == "baichuan" or model_type == "llama":
+            prompt = title + "\n"
+            for content in cmmlu_content_list:
+                prompt = prompt + "\n\n" + content
+
+        elif model_type == "qwen":
+            prompt = []
+            for content in cmmlu_content_list:
+                prompt.append({'role': 'user', 'content': f"{title}\n{content[:-1]}"})
+                prompt.append({'role': 'system', 'content': content[-1]})            
+
 
     return prompt
 

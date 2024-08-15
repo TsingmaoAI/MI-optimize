@@ -3,7 +3,9 @@ psutil
 pynvml
 primefac
 torch==2.0.1
-transformers==4.33.0
+
+# qwen2-7b need transformers>=4.37.0
+transformers==4.37.0
 
 sentencepiece==0.2.0
 streamlit==1.32.2
