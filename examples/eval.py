@@ -1,13 +1,13 @@
 import torch
 from mi_optimize import Benchmark
-from transformers import LlamaTokenizer, AutoModelForCausalLM
+from transformers import LlamaTokenizer, AutoModelForCausalLM, AutoTokenizer
 
 def main(args):
     # Load Benchmark
     benchmark = Benchmark()
 
     # Load Model && tokenizer
-    tokenizer = LlamaTokenizer.from_pretrained(args.model)
+    tokenizer = AutoTokenizer.from_pretrained(args.model)
     model = AutoModelForCausalLM.from_pretrained(args.model, trust_remote_code=True).half().cuda()
     
     # model = torch.load(args.quant_model)
