@@ -126,7 +126,7 @@ class QLinear(QModule):
             w = self.unpack_weight(qweight=w, wbit=self.w_bits)
             w = w.t().to(x)
             out_channel, in_channel = w.shape
-            if self.w_groupsize>0:   #TODO:在判断self.w_groupsize时候是>0时应当判断w_qtype是否是per_channel
+            if self.w_qtype == 'per_group' and self.w_groupsize > 0:   
                 w = w.reshape(-1, self.w_groupsize)
             scale = self.w_scale.reshape(-1, 1).to(w)
             zero = self.w_zero_point.reshape(-1, 1).to(w)

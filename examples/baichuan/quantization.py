@@ -55,6 +55,9 @@ if __name__=='__main__':
     
     print_args(args)
     
+    if (args.w_qtype == 'per_group' and args.w_groupsize == -1) or (args.w_qtype !='per_group' and args.w_groupsize >0) :
+        raise ValueError("weight type is not mathed ")
+    
     model = load_model(args.model_path)
         
     model.eval()
