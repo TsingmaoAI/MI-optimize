@@ -39,7 +39,7 @@ if __name__=='__main__':
     parser.add_argument('--algo', type=str, default='None', choices=['rtn', 'gptq', 'awq', 'spqr', 'zeroquant', 'smoothquant', 'quip', 'awq+gptq', 'smoothquant+gptq'])
     parser.add_argument('--wbit', type=int, default=4) 
     parser.add_argument('--abit', type=int, default=16)
-    parser.add_argument('--w-groupsize', type=int, default=128)
+    parser.add_argument('--w-groupsize', type=int, default=-1)
     parser.add_argument('--w-qtype', type=str, default='per_group')
     parser.add_argument('--benchmark', type=str, default='')
     parser.add_argument('--num-calibrate', type=int, default=1)
@@ -56,6 +56,9 @@ if __name__=='__main__':
     args_dict = vars(args)
     
     print_args(args)
+
+    if (args.w_qtype == 'per_group' and args.w_groupsize == -1) or (args.w_qtype !='per_group' and args.w_groupsize >0) :
+        raise ValueError("weight type is not mathed ")
     
     model = load_model(args.model_path)
         
