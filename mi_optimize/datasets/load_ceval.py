@@ -246,7 +246,14 @@ def classifi_results_ceval(results):
                 all_results['categories'][category]['correct'] += correct
             all_results['subjects'][sub] = {'total': total, 'correct': correct, 'ratio': ratio}
 
+    all_results['categories']['all']['correct'] = 0
+    all_results['categories']['all']['total'] = 0
     for category in all_results['categories']:
         all_results['categories'][category]['ratio'] = all_results['categories'][category]['correct'] / all_results['categories'][category]['total']
+        all_results['categories']['all']['correct'] += all_results['categories'][category]['correct']
+        all_results['categories']['all']['total'] += all_results['categories'][category]['total']
+
+    all_results['categories']['all']['ratio'] = all_results['categories']['all']['correct'] / all_results['categories']['all']['total']
+
 
     return all_results
