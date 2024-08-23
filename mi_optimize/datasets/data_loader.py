@@ -41,7 +41,7 @@ def get_wikitext2(tokenizer, split='test', nsamples=128, seqlen=2048, seed=42, *
 def get_c4(tokenizer, split='validation', nsamples=128, seqlen=2048, seed=42, **kwargs):
     if split=='train':
         logging.info("get_c4_train")
-        traindata = load_dataset("allenai/c4", name='default', data_files={'train': 'en/c4-train.00000-of-01024.json.gz'}, split='train')
+        traindata = load_dataset("mi_optimize/datasets/c4/", name='default', data_files={'train': 'en/c4-train.00000-of-01024.json.gz'}, split='train')
         random.seed(seed)
         trainloader = []
         for _ in range(nsamples):
@@ -57,7 +57,7 @@ def get_c4(tokenizer, split='validation', nsamples=128, seqlen=2048, seed=42, **
     
     if split=='validation':
         logging.info("get_c4_validation")
-        valdata = load_dataset("allenai/c4", name='default', data_files={'validation': 'en/c4-validation.00000-of-00008.json.gz'}, split='validation')
+        valdata = load_dataset("mi_optimize/datasets/c4/", name='default', data_files={'validation': 'en/c4-validation.00000-of-00008.json.gz'}, split='validation')
         testenc = tokenizer(" ".join(valdata[:1100]['text']), return_tensors='pt')  
         if nsamples=='all':  
             nsamples = len(testenc['input_ids'][0]) // seqlen + 1

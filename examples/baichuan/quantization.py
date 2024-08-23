@@ -9,7 +9,7 @@ from mi_optimize.quantization.models.baichuan_seq import baichuan_sequential
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from mi_optimize import Benchmark
 from mi_optimize.datasets.data_loader import get_calibrate_loader
-from .web_demo import run_web_demo
+# from .web_demo import run_web_demo
 import datetime
 
 def print_args(args):
@@ -51,7 +51,8 @@ if __name__=='__main__':
     tokenizer = LlamaTokenizer.from_pretrained(args.model_path, legacy=False)
     model = AutoModelForCausalLM.from_pretrained(args.model_path, trust_remote_code=True)
     model.eval()
-    
+    model.to(args.device)
+
     # Prepare Calibrate Dataset
     calibrate_config = {"name": args.calibrate_name, "nsamples":args.num_calibrate, "seqlen":args.seqlen}
     calibrate = get_calibrate_loader(tokenizer=tokenizer, calibrate_config=calibrate_config)
@@ -60,25 +61,29 @@ if __name__=='__main__':
     tick = time.time()
     model = baichuan_sequential(model=model, data=calibrate, **args_dict)
     logging.info(f'Quantize Time {time.time() - tick}')
+
     
     # Benchmark
-    model = model.to(args.device)
+    results_json = {}
     benchmark = Benchmark()
     if args.benchmark == 'ceval':
         # Evaluate the model on the ceval benchmark
         results_ceval = benchmark.eval_ceval(model=model, tokenizer=tokenizer, model_type='baichuan', num_shot=args.num_shot)
+        results_json['eval_ceval'] = results_ceval['categories']
         logging.info("\nCeval Benchmark Evaluation Results:")
         logging.info(results_ceval)
         
     if args.benchmark == 'cmmlu':
         # Evaluate the model on the mmlu benchmark
         results_cmmlu = benchmark.eval_cmmlu(model, tokenizer, model_type='baichuan', num_shot=args.num_shot)
+        results_json['eval_cmmlu'] = results_cmmlu['categories']
         logging.info("\nCMMLU Benchmark Evaluation Results:")
         logging.info(results_cmmlu)
         
     if args.benchmark == 'boss':
         # Evaluate the model on the BOSS benchmark
         results_boss = benchmark.eval_boss(model, tokenizer, num_shot=args.num_shot)
+        results_json['eval_boss'] = results_boss
         logging.info("\nBOSS Benchmark Evaluation Results:")
         logging.info(results_boss)
         
@@ -90,10 +95,20 @@ if __name__=='__main__':
             "hellaswag",       # Evaluating Common Sense Natural Language Inference
         ]
         results_lm_evaluation = benchmark.eval_lmeval(model, tokenizer=tokenizer, eval_tasks=eval_tasks, num_shot=args.num_shot)
+        results_json['eval_lmeval'] = results_lm_evaluation
         logging.info("\nLM Evaluation Harness Evaluation Results:")
         logging.info(results_lm_evaluation)
 
         
+    ##### save result #####
+    import re
+    import json
+    filename = re.match(r".*/([^/]+)\.\w+$", args.quant_config).group(1)
+    output_path = "./log/" + filename +".json"
+    with open(output_path, "w") as f:
+        json.dump(results_json, f, indent=4)
+
+
     if args.save:
         from mi_optimize.export.utils import export_module
         model = export_module(model)
@@ -101,4 +116,5 @@ if __name__=='__main__':
         
     
     if args.web_demo:
-        run_web_demo(model, tokenizer)
+        pass
+        # run_web_demo(model, tokenizer)

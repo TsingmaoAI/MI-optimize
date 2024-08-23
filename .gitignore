@@ -167,3 +167,4 @@ log
 
 ### temp
 *.pth
+*.json.gz
