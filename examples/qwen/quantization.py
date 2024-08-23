@@ -59,7 +59,6 @@ if __name__=='__main__':
     tokenizer = AutoTokenizer.from_pretrained(args.model_path)
     model = load_model(args.model_path)
     model.eval()
-    model = model.to(args.device)
     # model.half()
 
 
@@ -72,6 +71,8 @@ if __name__=='__main__':
     model = qwen_sequential(model=model, data=calibrate, **args_dict)
     logging.info(f'Quantize Time {time.time() - tick}')
     
+    model = model.to(args.device)
+
     # Benchmark
     results_json = {}
     benchmark = Benchmark()

@@ -60,7 +60,6 @@ if __name__=='__main__':
     tokenizer = LlamaTokenizer.from_pretrained(args.model_path, legacy=False)
     model = load_model(args.model_path)
     model.eval()
-    model.to(args.device)
 
 
     # Prepare Calibrate Dataset
@@ -71,7 +70,8 @@ if __name__=='__main__':
     tick = time.time()
     model = chatglm_sequential(model=model, data=calibrate, **args_dict)
     logging.info(f'Quantize Time {time.time() - tick}')
-    
+
+    model = model.to(args.device)    
 
     # Benchmark
     results_json = {}

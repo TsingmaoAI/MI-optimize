@@ -51,7 +51,6 @@ if __name__=='__main__':
     tokenizer = LlamaTokenizer.from_pretrained(args.model_path, legacy=False)
     model = AutoModelForCausalLM.from_pretrained(args.model_path, trust_remote_code=True)
     model.eval()
-    model.to(args.device)
 
     # Prepare Calibrate Dataset
     calibrate_config = {"name": args.calibrate_name, "nsamples":args.num_calibrate, "seqlen":args.seqlen}
@@ -62,7 +61,8 @@ if __name__=='__main__':
     model = baichuan_sequential(model=model, data=calibrate, **args_dict)
     logging.info(f'Quantize Time {time.time() - tick}')
 
-    
+    model = model.to(args.device)
+
     # Benchmark
     results_json = {}
     benchmark = Benchmark()
