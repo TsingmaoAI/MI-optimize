@@ -4,20 +4,29 @@ MI-optimize (MLinference Optimize) is a project designed to optimize machine lea
 
 ## Table of Contents
 
-- [Introduction](#introduction)
-- [Framework Overview](#framework-overview)
-- [Features](#features)
-- [Installation](#installation)
-  - [Prerequisites](#prerequisites)
-  - [Install from Source](#install-from-source)
-  - [Install from PyPi](#install-from-pypi)
-- [Usage](#usage)
-  - [Quantization](#quantization)
-  - [Evaluation](#evaluation)
-  - [Inference](#inference)
-- [OOD Benchmark Results](#ood-benchmark-results)
-- [Contact Us](#contact-us)
-- [Cite](#cite)
+- [MI-optimize](#mi-optimize)
+  - [Table of Contents](#table-of-contents)
+  - [News or Update](#news-or-update)
+  - [Introduction](#introduction)
+  - [Framework Overview](#framework-overview)
+  - [Features](#features)
+  - [Installation](#installation)
+    - [Prerequisites](#prerequisites)
+    - [Install from Source](#install-from-source)
+  - [Usage](#usage)
+    - [Quick Start](#quick-start)
+    - [Quantization](#quantization)
+    - [Evaluation](#evaluation)
+    - [Inference](#inference)
+    - [Quantize \&\& Evaluation(Command-line)](#quantize--evaluationcommand-line)
+    - [Arguments](#arguments)
+    - [Example Command](#example-command)
+    - [Quantize \&\& Evaluation (Code)](#quantize--evaluation-code)
+  - [OOD Benchmark Results](#ood-benchmark-results)
+    - [Perplexity (PPL) of the LLaMA-2-7B Model](#perplexity-ppl-of-the-llama-2-7b-model)
+    - [Cross-Dataset Distribution Shift in Chinese Domain-Specific Tasks](#cross-dataset-distribution-shift-in-chinese-domain-specific-tasks)
+      - [Explanation of Abbreviations:](#explanation-of-abbreviations)
+  - [Cite](#cite)
 
 
 ## News or Update
@@ -72,7 +81,11 @@ Here's a concise version of the description for the MI-optimize framework:
     conda activate {env_name}
     ```
 
-3. Install the package in editable mode:
+3. Use pip to install packages from requirements.
+   ```
+   pip install -r requirements.txt
+   ```
+4. Install the package in editable mode:
 
     ```bash
     pip install -e .
