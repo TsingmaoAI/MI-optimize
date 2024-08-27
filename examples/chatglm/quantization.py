@@ -111,9 +111,9 @@ if __name__=='__main__':
 
 
     ##### save result #####
-    import re
     import json
-    filename = re.match(r".*/([^/]+)\.\w+$", args.quant_config).group(1)
+    formatted_time = datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
+    filename = f'baichuan_{args.algo}_{args.wbit}_{args.calibrate_name}_{args.num_calibrate}_{args.num_shot}_{formatted_time}'
     output_path = "./log/" + filename +".json"
     with open(output_path, "w") as f:
         json.dump(results_json, f, indent=4)
