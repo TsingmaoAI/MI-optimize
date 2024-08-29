@@ -7,11 +7,12 @@ from mi_optimize.quantization import Precision, PRECISION_TO_BIT
 
 from .utils import track_hessian_hook_to_cpu, track_hessian_hook_to_cuda
 from .base import BaseQuantizer
+from mi_optimize.quantization import PRECISION_TO_STR
 
 
 class LinearSpqrQuantizer(BaseQuantizer):
     def __init__(self, quant_hub_linear, w_groupsize, outlier_relative_threshold=0.2, qq_scale_bits=3, qq_zero_bits=3, qq_zero_sym=False, qq_groupsize=16, wbit=Precision.FP16, offload='cpu', device='cuda',**kwarg):
-        super().__init__(quant_hub_linear=quant_hub_linear, wbit=wbit, offload=offload, device=device)
+        super().__init__(quant_hub_linear, wbit=wbit, offload=offload, device=device)
         self.nsamples = 0
         self.H = torch.zeros_like((self.quant_hub_linear.core.weight), device=self.offload)
         self.permutation_order = "identity"
@@ -351,7 +352,7 @@ class LinearSpqrQuantizer(BaseQuantizer):
             w = self.quant_hub_linear.core.weight.float()
             x = x.float()
         else:
-            w = self.Q.value.to(x)
+            w = self.Q.to(x)
 
         bias = None if self.quant_hub_linear.core.bias is None else self.quant_hub_linear.core.bias.to(x)
         return F.linear(x, w, bias).to(origin_dtype)

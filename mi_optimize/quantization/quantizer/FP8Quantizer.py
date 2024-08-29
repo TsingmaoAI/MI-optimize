@@ -7,8 +7,8 @@ from mi_optimize.quantization import Precision, PRECISION_TO_BIT
 from .base import BaseQuantizer
 
 class LinearFP8Quantizer(BaseQuantizer):
-    def __init__(self, quant_hub_layer, act_quant='E4M3', weight_quant='E4M3', wbit=Precision.INT8, abit=Precision.INT8, offload='cpu', device='cuda',**kwarg):
-        super().__init__(quant_hub_layer, wbit, abit, offload, device)
+    def __init__(self, quant_hub_linear, act_quant='E4M3', weight_quant='E4M3', wbit=Precision.INT8, abit=Precision.INT8, offload='cpu', device='cuda',**kwarg):
+        super().__init__(quant_hub_linear, wbit, abit, offload, device)
         self.E4M3_bound = 240
         self.E5M2_bound = 57344 
         self.act_quant = act_quant

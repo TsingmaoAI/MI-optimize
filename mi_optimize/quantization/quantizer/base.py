@@ -1,8 +1,8 @@
 class BaseQuantizer(object):
-    def __init__(self, quant_hub_layer, w_bits=16, a_bits=16, offload=None, device=None, a_qtype="per_tensor", w_qtype="per_group", w_has_zero=False, a_has_zero=False, w_unsign=True, a_unsign=True, quantization_type='static'):
+    def __init__(self, quant_hub_linear, w_bits=16, a_bits=16, offload=None, device=None, a_qtype="per_tensor", w_qtype="per_group", w_has_zero=False, a_has_zero=False, w_unsign=True, a_unsign=True, quantization_type='static'):
         self.wbit = w_bits
         self.abit = a_bits
-        self.quant_hub_linear = quant_hub_layer
+        self.quant_hub_linear = quant_hub_linear
         self.offload = offload
         self.device = device
         self.a_qtype = a_qtype

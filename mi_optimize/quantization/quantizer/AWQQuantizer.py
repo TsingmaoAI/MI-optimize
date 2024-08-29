@@ -8,8 +8,8 @@ from .base import BaseQuantizer
 
 
 class LinearAwqQuantizer(BaseQuantizer):
-    def __init__(self, quant_hub_layer, w_has_zero=True, w_unsign=True, w_groupsize=128,  auto_scale=True, auto_clip=True, w_qtype='per_group', wbit=Precision.FP16, abit=Precision.FP16, offload='cpu', device='cuda',**kwarg) -> None:
-        super().__init__(quant_hub_layer = quant_hub_layer, w_unsign=w_unsign, w_bits=wbit, w_has_zero=w_has_zero, offload=offload, device=device)
+    def __init__(self, quant_hub_linear, w_has_zero=True, w_unsign=True, w_groupsize=128,  auto_scale=True, auto_clip=True, w_qtype='per_group', wbit=Precision.FP16, abit=Precision.FP16, offload='cpu', device='cuda',**kwarg) -> None:
+        super().__init__(quant_hub_linear = quant_hub_linear, w_unsign=w_unsign, w_bits=wbit, w_has_zero=w_has_zero, offload=offload, device=device)
         self.auto_scale = auto_scale
         self.auto_clip = auto_clip
         self.groupsize = w_groupsize
