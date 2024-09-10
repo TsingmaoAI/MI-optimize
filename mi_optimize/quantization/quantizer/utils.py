@@ -122,7 +122,8 @@ class Quantizer(torch.nn.Module):
         if not self.has_zero:
             max_abs_value = torch.max(abs(x_max), abs(x_min))
             scale = max_abs_value / ((self.qmax - self.qmin) // 2)
-            zero_point = 0 if self.qmin<0 else (self.qmax + self.qmin) // 2
+            # zero_point = 0 if self.qmin<0 else (self.qmax + self.qmin) // 2
+            zero_point = 0 if self.qmin<0 else 1<<(self.bits-1)
             zero_point = zero_point * torch.ones_like(scale)
         else:
             scale = (x_max - x_min) / (self.qmax - self.qmin)
