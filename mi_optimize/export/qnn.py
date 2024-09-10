@@ -160,7 +160,8 @@ class QLinear(QModule):
             a_bits=PRECISION_TO_BIT[module.abit],
             w_groupsize=module.w_groupsize,
             a_qtype= module.a_qtype,
-            w_qtype=module.w_qtype
+            w_qtype=module.w_qtype,
+            quantization_type = module.quantization_type
         )
         
         bias   = module.quant_hub_linear.core.bias
