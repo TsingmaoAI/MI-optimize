@@ -25,7 +25,7 @@ BITMASK = [
 
 
 class QLinear(QModule):
-    def __init__(self, in_channels, out_channels, bias=None, w_bits=4, a_bits=16, w_groupsize=128, a_groupsize=None, a_has_zero=False, a_qtype='per_token', w_has_zero=False, w_qtype='per_channel', quantization_type='dynamic') -> None:
+    def __init__(self, in_channels, out_channels, bias=None, w_bits=4, a_bits=16, w_groupsize=128, a_groupsize=None, a_has_zero=False, a_qtype='per_token', w_has_zero=False, w_qtype='per_channel', quantization_type='dynamic', a_unsign=True) -> None:
         super().__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
@@ -39,6 +39,7 @@ class QLinear(QModule):
         self.a_qtype = a_qtype
         self.w_qtype = w_qtype
         self.quantization_type = quantization_type
+        self.a_unsign = a_unsign
 
         if bias is not None:
             self.register_buffer('bias', torch.empty(out_channels))
@@ -73,7 +74,7 @@ class QLinear(QModule):
                 assert quantization_type =='dynamic', 'per token quantization only support dynamic'
             else:
                 raise ValueError('not support activate qtype:{}'.format(a_qtype))
-            self.a_quantizer = Quantizer(bits=PRECISION_TO_BIT[a_bits], has_zero=a_has_zero, qtype=a_qtype, groupsize=a_groupsize)
+            self.a_quantizer = Quantizer(bits=PRECISION_TO_BIT[a_bits], has_zero=a_has_zero, qtype=a_qtype, groupsize=a_groupsize, unsign=self.a_unsign)
         else:
             self.register_buffer('a_scale', None)
             self.register_buffer('a_zero_point', None)
@@ -161,7 +162,9 @@ class QLinear(QModule):
             w_groupsize=module.w_groupsize,
             a_qtype= module.a_qtype,
             w_qtype=module.w_qtype,
-            quantization_type = module.quantization_type
+            quantization_type = module.quantization_type,
+            a_unsign = module.a_unsign
+            
         )
         
         bias   = module.quant_hub_linear.core.bias

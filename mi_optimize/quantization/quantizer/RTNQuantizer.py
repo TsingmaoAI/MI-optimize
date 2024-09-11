@@ -12,7 +12,7 @@ from .base import BaseQuantizer
 
 class LinearRTNQuantizer(BaseQuantizer):
     def __init__(self, quant_hub_linear, w_groupsize=-1, a_groupsize=-1, a_qtype="per_tensor", w_qtype="per_group", w_has_zero:bool=False, a_has_zero: bool=False, w_unsign:bool=True, a_unsign:bool=True, quantization_type='static', wbit=Precision.FP16, abit=Precision.FP16, offload='cpu', device='cuda', **kwargs):
-        super().__init__(quant_hub_linear, wbit, abit, offload, device)
+        super().__init__(quant_hub_linear, wbit, abit, offload, device, w_unsign=w_unsign, a_unsign=a_unsign)
         self.w_groupsize = w_groupsize
         self.a_groupsize = a_groupsize
         self.a_qtype = a_qtype

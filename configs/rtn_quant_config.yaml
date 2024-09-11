@@ -12,8 +12,8 @@ quant_config:
     w_qtype: "per_channel"             
     w_has_zero: False
     a_has_zero: False
-    w_unsign: True
-    a_unsign: True
+    w_unsign: False
+    a_unsign: False
     quantization_type: 'static'
     block_sequential: True
     layer_sequential: True
