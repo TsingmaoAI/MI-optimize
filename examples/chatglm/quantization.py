@@ -1,15 +1,17 @@
 import torch
 import time
 import logging
-from transformers import LlamaTokenizer, LlamaForCausalLM
+from transformers import AutoTokenizer,AutoModel
+from transformers.modeling_utils import PreTrainedModel
 import argparse
 
 from mi_optimize.quantization.models.chatglm_seq import chatglm_sequential
 from mi_optimize import Benchmark
 from mi_optimize.datasets.data_loader import get_calibrate_loader
-from .web_demo import run_web_demo
+from web_demo import run_web_demo
 import datetime
 
+#下载模型
 def load_model(model_name_or_path):
     def skip(*args, **kwargs):
         pass
@@ -17,7 +19,7 @@ def load_model(model_name_or_path):
     torch.nn.init.kaiming_uniform_ = skip
     torch.nn.init.uniform_ = skip
     torch.nn.init.normal_ = skip
-    model = LlamaForCausalLM.from_pretrained(model_name_or_path, torch_dtype='auto')
+    model = AutoModel.from_pretrained(model_name_or_path, torch_dtype='auto',trust_remote_code = True)
     return model
 
 
@@ -26,7 +28,7 @@ def print_args(args):
     logging.info(f"--algo: {args.algo}")
     logging.info(f"--wbit: {args.wbit}")
     logging.info(f"--device: {args.device}")
-    logging.info(f"Current Time: {datetime.datetime.now()}")
+    logging.info(f"当前时间是: {datetime.datetime.now()}")
 
 
 if __name__=='__main__':
@@ -37,7 +39,7 @@ if __name__=='__main__':
     parser.add_argument('--algo', type=str, default='None', choices=['rtn', 'gptq', 'awq', 'spqr', 'zeroquant', 'smoothquant', 'quip', 'awq+gptq', 'smoothquant+gptq'])
     parser.add_argument('--wbit', type=int, default=4) 
     parser.add_argument('--abit', type=int, default=16)
-    parser.add_argument('--w-groupsize', type=int, default=128)
+    parser.add_argument('--w-groupsize', type=int, default=-1)
     parser.add_argument('--w-qtype', type=str, default='per_group')
     parser.add_argument('--benchmark', type=str, default='')
     parser.add_argument('--num-calibrate', type=int, default=1)
@@ -50,41 +52,40 @@ if __name__=='__main__':
     parser.add_argument('--block-sequential', action='store_true', help='')
     parser.add_argument('--layer-sequential', action='store_true', help='')
     parser.add_argument('--save', type=str, default=None)
-    parser.add_argument('--web-demo', action='store_true', help='')
     args = parser.parse_args()
     args_dict = vars(args)
     
     print_args(args)
 
-    # Import Model
-    tokenizer = LlamaTokenizer.from_pretrained(args.model_path, legacy=False)
+    if (args.w_qtype == 'per_group' and args.w_groupsize == -1) or (args.w_qtype !='per_group' and args.w_groupsize >0) :
+        raise ValueError("weight type is not mathed ")
+    
     model = load_model(args.model_path)
+        
     model.eval()
     
-    # Prepare Calibrate Dataset
-    calibrate_config = {"name": args.calibrate_name, "nsamples":args.num_calibrate, "seqlen":args.seqlen}
-    calibrate = get_calibrate_loader(tokenizer=tokenizer, calibrate_config=calibrate_config)
-
-    # Quantiaze Model
+    tokenizer = AutoTokenizer.from_pretrained(args.model_path, legacy=False,trust_remote_code = True)
+    
+    calibrate_config ={'name':args.calibrate_name ,'nsamples':args.num_calibrate,'seqlen':args.seqlen}
+    calibrate = get_calibrate_loader(tokenizer=tokenizer,calibrate_config=calibrate_config)
     tick = time.time()
+    
     model = chatglm_sequential(model=model, data=calibrate, **args_dict)
-    logging.info(f'Quantize Time {time.time() - tick}')
+    logging.info(f'quantize time {time.time() - tick}')
     
     model = model.to(args.device)
-
-    # Benchmark
     benchmark = Benchmark()
     if args.benchmark == 'ceval':
         # Evaluate the model on the ceval benchmark
-        results_ceval = benchmark.eval_ceval(model=model, tokenizer=tokenizer, model_type='chatglm', num_shot=args.num_shot)
+        results_ceval = benchmark.eval_ceval(model=model, tokenizer=tokenizer, model_type='llama', num_shot=args.num_shot)
         logging.info("\nCeval Benchmark Evaluation Results:")
         logging.info(results_ceval)
         
-    if args.benchmark == 'cmmlu':
+    if args.benchmark == 'mmlu':
         # Evaluate the model on the mmlu benchmark
-        results_cmmlu = benchmark.eval_cmmlu(model, tokenizer, model_type='chatglm', num_shot=args.num_shot)
-        logging.info("\nCMMLU Benchmark Evaluation Results:")
-        logging.info(results_cmmlu)
+        results_mmlu = benchmark.eval_cmmlu(model, tokenizer, model_type='llama', num_shot=args.num_shot)
+        logging.info("\nMMLU Benchmark Evaluation Results:")
+        logging.info(results_mmlu)
         
     if args.benchmark == 'boss':
         # Evaluate the model on the BOSS benchmark
@@ -95,11 +96,11 @@ if __name__=='__main__':
     if args.benchmark == 'lmeval':
         # Evaluate using lm-evaluation-harness
         eval_tasks = [
-            "lambada",         # Evaluating language model completion
+            "lambada_openai",  # Evaluating language model completion
             "piqa",            # Evaluating Physical Interaction QA
             "hellaswag",       # Evaluating Common Sense Natural Language Inference
         ]
-        results_lm_evaluation = benchmark.eval_lmeval(model, tokenizer=tokenizer, eval_tasks=eval_tasks, num_shot=args.num_shot)
+        results_lm_evaluation = benchmark.eval_lmeval(model, num_shot=args.num_shot, eval_tasks=eval_tasks)
         logging.info("\nLM Evaluation Harness Evaluation Results:")
         logging.info(results_lm_evaluation)
 
@@ -107,8 +108,8 @@ if __name__=='__main__':
     if args.save:
         from mi_optimize.export.utils import export_module
         model = export_module(model)
-        torch.save(model, args.save)
-        
+        #chatglm的激活函数swiglu定义在了类的内部，导师torch.save无法正确打包，解决方案1：更改modeling_chatglm.py,将swiglu函数移到MLP类外
+        torch.save(model, args.save)  
     
     if args.web_demo:
         run_web_demo(model, tokenizer)

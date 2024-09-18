@@ -1,6 +1,7 @@
 import torch
 import torch.nn.functional as F
 
+from mi_optimize.memory import MEMORY_BANK, clear_mem
 from mi_optimize.quantization import Precision, PRECISION_TO_BIT
 
 from .utils import track_input_hook_to_cpu, track_input_hook_to_cuda
@@ -205,7 +206,6 @@ class LinearAwqQuantizer(BaseQuantizer):
         if self.wbit not in [Precision.FP16, Precision.FP32]:
             input_list = [x[0] for x in self.quant_hub_linear.core.input_tracks]
             input_feat = torch.cat(input_list, dim=1)
-            print('input_feat', input_feat.shape)
             input_feat = input_feat.to(self.device)
             Q = self.quant_hub_linear.core.weight.detach().to(self.device)
 
