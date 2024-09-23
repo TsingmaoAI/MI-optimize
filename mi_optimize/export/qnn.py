@@ -144,7 +144,12 @@ class QLinear(QModule):
                 intx = self.a_quantizer.quantize(x, scale=scales, zero_point=zero_points)
                 x = self.a_quantizer.dequantize(intx, scale=scales, zero_point=zero_points)
             elif self.quantization_type == 'dynamic':
+                # print("xxx origin", x[0][:1][:10])
                 x, scales, zero_points = self.a_quantizer.quantize_dequantize(x)
+                # print('scales', scales[:1][:])
+                # print('zero_points', zero_points[:1][:])
+                # print('xxx', x[0][:1][:10])
+                # exit()
             else:
                 raise ValueError('quantization_type: {} is not support', self.quantization_type)
         if self.bias is not None:
@@ -160,6 +165,7 @@ class QLinear(QModule):
             w_bits=PRECISION_TO_BIT[module.wbit],
             a_bits=PRECISION_TO_BIT[module.abit],
             w_groupsize=module.w_groupsize,
+            a_groupsize = module.a_groupsize,
             a_qtype= module.a_qtype,
             w_qtype=module.w_qtype,
             quantization_type = module.quantization_type,
@@ -169,7 +175,7 @@ class QLinear(QModule):
         
         bias   = module.quant_hub_linear.core.bias
         
-        if module.abit <= Precision.INT8:
+        if module.abit <= Precision.INT8 and module.quantization_type=='static':
             qlinear.a_scale.data.copy_(module.a_scale)
             qlinear.a_zero_point.data.copy_(module.a_zero_point)
 

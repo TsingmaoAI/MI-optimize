@@ -153,7 +153,7 @@ class Benchmark:
                     response_answer = candidates[np.argmax(label_score)]
 
                 else:
-                    raise ValueError(f'not support {model_type}')
+                    raise ValueError(f'not support {model_type} eval cmmlu')
 
                 count = count + 1
                 correct += (answer == response_answer)

@@ -170,6 +170,8 @@ class Quantizer(torch.nn.Module):
             quantized_data = self.quantize(data, scales, zero_points)
             dequantized_data = self.dequantize(quantized_data, scales, zero_points)
             dequantized_data = dequantized_data.reshape(origin_shape)
+            scales = scales.reshape(-1, origin_shape[-1] // self.groupsize)
+            zero_points = zero_points.reshape(-1, origin_shape[-1] // self.groupsize)
         elif self.qtype == 'per_dimension':
             assert data.dim()==3, f'per_dimension just support x dim is 3, now x dim is {data.dim()}'
             origin_shape = data.shape
@@ -181,7 +183,7 @@ class Quantizer(torch.nn.Module):
             dequantized_data = self.dequantize(quantized_data, scales, zero_points)
         elif self.qtype == 'per_token':
             origin_shape = data.shape
-            data.reshape(-1, origin_shape[-1])
+            data = data.reshape(-1, origin_shape[-1])
             x_min = data.amin(dim=1, keepdim=True)
             x_max = data.amax(dim=1, keepdim=True)
             scales, zero_points = self.find_params(x_min=x_min, x_max=x_max)

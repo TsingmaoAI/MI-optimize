@@ -2,16 +2,16 @@ quant_config:
   algo: rtn
   model_type: "llama"
   kwargs:
-    w_dtype: int4    # select from ['int2', 'int3', 'int4', 'int8', 'float16']
+    w_dtype: int4   # select from ['int2', 'int3', 'int4', 'int8', 'float16']
     a_dtype: float16 # select from ['int2', 'int3', 'int4',  'int8', 'float16']
-    device: 'cuda:1'
+    device: 'cuda'
     offload: 'cpu'
-    w_groupsize: -1
+    w_groupsize: 128
     a_groupsize: -1
-    a_qtype: "per_tensor"              
-    w_qtype: "per_channel"             
+    a_qtype: "per_token"  #select from ["per_tensor", "per_token", "per_group", "per_dimension"]                 
+    w_qtype: "per_group"  # select from ["per_tensor", "per_channel", "per_group"]             
     w_has_zero: False
-    a_has_zero: False
+    a_has_zero: True
     w_unsign: False
     a_unsign: False
     quantization_type: 'static'
@@ -22,7 +22,7 @@ quant_config:
   calibrate_config:
     name: 'wikitext2'
     split: train
-    nsample: 1
+    nsamples: 1
     seqlen: 2048
   
   

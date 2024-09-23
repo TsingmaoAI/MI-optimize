@@ -97,7 +97,7 @@ Here's a concise version of the description for the MI-optimize framework:
 python examples/quantize_eval.py --model {model_to_path} --quant-config ./configs/rtn_quant_config.yaml --eval-ppl --save llama-2-7b-quant.pth
 ```
 ### Quantization 
-Below is an example of how to set up the quantization process for a model. For detailed information on all available quantization configuration options, please refer to the [quantization configuration guide](configs/quantization_config.md).
+Below is an example of how to set up the quantization process for a model. For detailed information on all available quantization configuration options, please refer to the [quantization configuration guide](configs/README.md).
 ```
 import torch
 from transformers import AutoModelForCausalLM, LlamaTokenizer

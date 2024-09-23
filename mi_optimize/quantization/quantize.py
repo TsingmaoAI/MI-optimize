@@ -31,10 +31,8 @@ def quantize(model, tokenizer, quant_config):
         if model_type == 'chatglm':
             return chatglm_sequential(model, algo, calibrate_loader, **kwargs)
 
-        if model_type == 'other_model':
+        else:
             return quant_other_model(model, algo, calibrate_loader, **kwargs)
-
-        raise ValueError(f'not support {model_type}')
     else:
         return model
 

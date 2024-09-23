@@ -9,27 +9,21 @@ The quantization process adjusts the precision of model weights and activations,
 ### Common Parameters
 
 These parameters are shared across different quantization algorithms:
-
+- `algo`: quantize method of model, choices include `rtn`, `gptq`, `awq`, `smoothquant`, `zeroquant`
 - `model_type`: Indicates the type of model to quantize (e.g., `llama`, `chatglm`, `baichuan`, `other_model`).
-- `w_dtype`: Weight data type, choices include `int2`, `int3`, `int4`, `int8`,`float16`.
-- `a_dtype`: Activation data type, choices mirror those of `w_dtype`.
-- `num_calibrate`: Number of samples used for calibration. default: 128
-- `calibrate_seq_length`: Sequence length for calibration. default: 2048
-- `device`: Specifies the computation device, e.g., `cuda:7` for a specific GPU.
+- `device`: Specifies the computation device, e.g., `cuda:0` for a specific GPU.
 - `offload`: Device used for offloading computations to save memory, typically `cpu`.
 - `skip_layers`: Specifies the layers to skip during quantization, should match the module name. default: ['lm_head']
+- `w_dtype`: Weight data type, choices include `int2`, `int3`, `int4`, `int8`,`float16`.
+- `a_dtype`: Activation data type, choices include `int2`, `int3`, `int4`, `int8`,`float16`.
+- `num_calibrate`: Number of samples used for calibration. default: 128
+- `calibrate_seq_length`: Sequence length for calibration. default: 2048
 - `calibrate_name`: Specifies the dataset used for calibration, e.g., 
   - `wikitext2`
   - `c4`
   - `ptb`
-  - `cmmlu_all`
-  - `cmmlu_hm`
-  - `cmmlu_st`
-  - `cmmlu_ss`
-  - `ceval_all`
-  - `ceval_hm`
-  - `ceval_st`
-  - `ceval_ss`
+  - `cmmlu`
+  - `ceval`
   - `QuestionAnswering_advqa`
   - `QuestionAnswering_squad`
   - `QuestionAnswering_newsqa`
@@ -53,7 +47,7 @@ These parameters are shared across different quantization algorithms:
 
 - `w_groupsize`: Specifies the size of groups for quantization. (Options: 32, 64, 128)
 - `w_qtype`: Quantization type for weights, e.g., `per_channel`. `per_group`. `per_tensor`
-- `a_qtype`: Quantization type for activations, e.g., `per_tensor`.
+- `a_qtype`: Quantization type for activations, e.g., `per_tensor`. `per_token`
 - `block_sequential`: Enables block-sequential quantization.
 - `layer_sequential`: Enables layer-sequential quantization.
 

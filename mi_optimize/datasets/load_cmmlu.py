@@ -148,7 +148,7 @@ def get_cmmlu(subject='all', split='test', question=4, shuffle=False, seed=42, a
             
     return CMMLU_question_list
 
-def get_calibrate_cmmlu(tokenizer, calibrate_subject='all', split='test', calibrate_nums=4, shuffle=False, seed=42, answer=False, calibrate_seqlen=2048, **kwargs):
+def get_calibrate_cmmlu(tokenizer, calibrate_subject='all', split='test-source', calibrate_nums=4, shuffle=False, seed=42, answer=False, calibrate_seqlen=2048, **kwargs):
     calibrate_data = get_cmmlu(subject=calibrate_subject, split=split, question=calibrate_nums, shuffle=shuffle, seed=seed, answer=answer)
     inputs_ids = []
     for data in calibrate_data:
