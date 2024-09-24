@@ -57,7 +57,7 @@ class QLinear(QModule):
                 self.register_buffer('w_zero_point', torch.empty([1]))
             else:
                 raise ValueError('not support weight qtype:{}'.format(w_qtype))
-            self.register_buffer('pack_weight', torch.empty(in_channels * w_bits // 32, out_channels, dtype=torch.int32))
+            self.register_buffer('weight', torch.empty(out_channels, in_channels * w_bits // 32, dtype=torch.int32))
         else:
             self.register_buffer('weight', torch.empty(out_channels, in_channels))
             self.register_buffer('w_scale', None)
@@ -123,7 +123,7 @@ class QLinear(QModule):
     @torch.no_grad()
     def forward(self, x):
         if self.w_bits<=8:
-            w = self.pack_weight
+            w = self.weight.t()
             w = self.unpack_weight(qweight=w, wbit=self.w_bits)
             w = w.t().to(x)
             out_channel, in_channel = w.shape
@@ -206,7 +206,7 @@ class QLinear(QModule):
                     qweight[idx_weight] |= (intweight[i] >> (wbit - 32 + off_weight) )
                     qweight[idx_weight + 1] |= (intweight[i]&BITMASK[wbit - 32 + off_weight-1])
 
-            qlinear.pack_weight.data.copy_(torch.from_numpy(qweight.astype(np.int32)))
+            qlinear.weight.data.copy_(torch.from_numpy(qweight.T.astype(np.int32)))
             if bias is not None:
                 qlinear.bias.data.copy_(bias)
             else:
@@ -268,7 +268,7 @@ class QLinear(QModule):
                     qweight[idx_weight] |= (intweight[i] >> (wbit - 32 + off_weight) )
                     qweight[idx_weight + 1] |= (intweight[i]&BITMASK[wbit - 32 + off_weight-1])
 
-            qlinear.pack_weight.data.copy_(torch.from_numpy(qweight.astype(np.int32)))
+            qlinear.weight.data.copy_(torch.from_numpy(qweight.T.astype(np.int32)))
             if bias is not None:
                 qlinear.bias.data.copy_(bias)
             else:
@@ -327,7 +327,7 @@ class QLinear(QModule):
                     qweight[idx_weight] |= (intweight[i] >> (wbit - 32 + off_weight) )
                     qweight[idx_weight + 1] |= (intweight[i]&BITMASK[wbit - 32 + off_weight-1])
 
-            qlinear.pack_weight.data.copy_(torch.from_numpy(qweight.astype(np.int32)))
+            qlinear.weight.data.copy_(torch.from_numpy(qweight.T.astype(np.int32)))
             if bias is not None:
                 qlinear.bias.data.copy_(bias)
             else:
@@ -390,7 +390,7 @@ class QLinear(QModule):
                     qweight[idx_weight] |= (intweight[i] >> (wbit - 32 + off_weight) )
                     qweight[idx_weight + 1] |= (intweight[i]&BITMASK[wbit - 32 + off_weight-1])
 
-            qlinear.pack_weight.data.copy_(torch.from_numpy(qweight.astype(np.int32)))
+            qlinear.weight.data.copy_(torch.from_numpy(qweight.T.astype(np.int32)))
             if bias is not None:
                 qlinear.bias.data.copy_(bias)
             else:

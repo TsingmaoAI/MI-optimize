@@ -3,7 +3,7 @@ psutil
 pynvml
 primefac
 torch
-transformers==4.33.0
+# transformers==4.33.0
 
 #qwen2
 #transformers==4.37.0

@@ -17,13 +17,18 @@ def main(args):
         config = yaml.safe_load(file)
 
     # Load the pre-trained Hugging Face model
-    model = AutoModelForCausalLM.from_pretrained(args.model, trust_remote_code=True).half()  
+    model = AutoModelForCausalLM.from_pretrained(args.model, trust_remote_code=True).float()
     tokenizer = AutoTokenizer.from_pretrained(args.model)
 
     # Quantize the model
     quant_model = quantize(model, tokenizer=tokenizer, quant_config=config['quant_config'])
-
-    quant_model = quant_model.eval()
+    
+    #save model 
+    quant_model.to('cpu')
+    quant_model = export_module(quant_model)
+    torch.save(quant_model, args.save)
+    
+    quant_model = quant_model.cuda().eval()
     quant_model.to(config['quant_config']['kwargs']['device'])
     
     benchmark = Benchmark()
@@ -73,11 +78,6 @@ def main(args):
         json.dump(results_json, f, indent=4)
 
     logging.info("Process Finished!")
-    
-    #save model 
-    quant_model.to('cpu')
-    quant_model = export_module(quant_model)
-    torch.save(quant_model, args.save)
     
 if __name__=='__main__':
     import argparse
