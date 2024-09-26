@@ -426,10 +426,10 @@ def llama2flm(
 
 if __name__ == '__main__' :
     
-    tokenizer = LlamaTokenizer.from_pretrained('/home/wf/models/Llama-2-7b-hf',trust_remote_code = True)  #TODO:这行代码与下面交换会导致报错，因为torch.load和torch.save得具有相同的脚本结构，torch.save如果使用了trust_remote_code = true可能会导致这可能会改变 Python 环境或路径，从而影响模块的导入顺序,所以这里把tokenizer放到前面执行
-    model = torch.load('/home/wf/nx/MI-optimize/examples/llama/w8a16gptq.pt')
+    tokenizer = LlamaTokenizer.from_pretrained('/home/models/Llama-2-7b-hf',trust_remote_code = True)  #TODO:这行代码与下面交换会导致报错，因为torch.load和torch.save得具有相同的脚本结构，torch.save如果使用了trust_remote_code = true可能会导致这可能会改变 Python 环境或路径，从而影响模块的导入顺序,所以这里把tokenizer放到前面执行
+    model = torch.load('/home/MI-optimize/examples/llama/w8a16gptq.pt')
     #model = LlamaForCausalLM.from_pretrained('/home/wf/models/Llama-2-7b-hf', trust_remote_code = True)
-    exportPath = '/home/wf/nx/MI-optimize/examples/llama/llama2-int8.flm'
+    exportPath = '/home/MI-optimize/examples/llama/llama2-int8.flm'
     # model.eval()
     # model.cuda()
     # prompt = 'why is the sky blue'
