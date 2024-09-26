@@ -3,7 +3,9 @@ import torch, gc, os
 import yaml
 from transformers import  AutoTokenizer
 
-from examples.qwen.modeling import Qwen2ForCausalLM
+import sys
+sys.path.append("/home/wufang/MI-optimize/examples/qwen")
+from .modeling import Qwen2ForCausalLM
 
 from mi_optimize import quantize
 from mi_optimize.export import export_module
