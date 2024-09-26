@@ -23,6 +23,7 @@ BITMASK = [
     0xff
 ]
 
+DEVICE = torch.device('cpu')
 
 class QLinear(QModule):
     def __init__(self, in_channels, out_channels, bias=None, w_bits=4, a_bits=16, w_groupsize=128, a_groupsize=None, a_has_zero=False, a_qtype='per_token', w_has_zero=False, w_qtype='per_channel', quantization_type='dynamic', a_unsign=True) -> None:
@@ -83,14 +84,14 @@ class QLinear(QModule):
         rows, cols = qweight.shape
         intweight_rows = rows * (32 // wbit)
         
-        qweight = qweight.to('cuda')
+        qweight = qweight.to(DEVICE)
         
-        intweight = torch.zeros((intweight_rows, cols), dtype=torch.int32, device='cuda')
+        intweight = torch.zeros((intweight_rows, cols), dtype=torch.int32).to(DEVICE)
         
-        idx_weight = (torch.arange(intweight_rows, device='cuda') * wbit) // 32
-        off_weight = (torch.arange(intweight_rows, device='cuda') * wbit) % 32
+        idx_weight = (torch.arange(intweight_rows).to(DEVICE) * wbit) // 32
+        off_weight = (torch.arange(intweight_rows).to(DEVICE) * wbit) % 32
         
-        simple_mask = torch.tensor(BITMASK[wbit - 1], dtype=torch.int32, device='cuda')
+        simple_mask = torch.tensor(BITMASK[wbit - 1], dtype=torch.int32).to(DEVICE)
         
         mask_simple = (wbit + off_weight <= 32)
         if mask_simple.any():
@@ -102,8 +103,8 @@ class QLinear(QModule):
 
         mask_complex = (wbit + off_weight > 32)
         if mask_complex.any():
-            complex_mask1 = torch.tensor([BITMASK[32 - off - 1] for off in off_weight[mask_complex]], dtype=torch.int32, device='cuda')
-            complex_mask2 = torch.tensor([BITMASK[wbit + off - 32 - 1] for off in off_weight[mask_complex]], dtype=torch.int32, device='cuda')
+            complex_mask1 = torch.tensor([BITMASK[32 - off - 1] for off in off_weight[mask_complex]], dtype=torch.int32).to(DEVICE)
+            complex_mask2 = torch.tensor([BITMASK[wbit + off - 32 - 1] for off in off_weight[mask_complex]], dtype=torch.int32).to(DEVICE)
             
             shifts_complex1 = (wbit + off_weight[mask_complex] - 32).to(torch.int32)
             shifts_complex2 = (64 - wbit - off_weight[mask_complex]).to(torch.int32)
@@ -126,6 +127,8 @@ class QLinear(QModule):
             w = self.weight.t()
             w = self.unpack_weight(qweight=w, wbit=self.w_bits)
             w = w.t().to(x)
+            # print('w_1', w[0][:10])
+            # exit()
             out_channel, in_channel = w.shape
             if self.w_qtype == 'per_group' and self.w_groupsize > 0:   
                 w = w.reshape(-1, self.w_groupsize)
@@ -192,6 +195,8 @@ class QLinear(QModule):
             
             if module.w_qtype=='per_group' and module.w_groupsize != -1:
                 intweight = intweight.reshape_as(module.fake_w)
+            # print('w_0', intweight[0][:10])
+            # exit()
             intweight = intweight.t().cpu().contiguous().numpy().astype(np.uint32)
             qweight   = np.zeros((intweight.shape[0] * wbit // 32, intweight.shape[1]), dtype=np.uint32)
             

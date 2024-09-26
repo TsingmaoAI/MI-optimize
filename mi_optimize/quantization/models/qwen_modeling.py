@@ -780,7 +780,7 @@ class Qwen2DecoderLayer(nn.Module):
                 f"Sliding Window Attention is enabled but not implemented for `{config._attn_implementation}`; "
                 "unexpected results may be encountered."
             )
-        print(config._attn_implementation)
+        # print(config._attn_implementation)
         config._attn_implementation = "sdpa"
         self.self_attn = QWEN2_ATTENTION_CLASSES[config._attn_implementation](config, layer_idx)
 
