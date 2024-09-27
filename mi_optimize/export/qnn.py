@@ -59,6 +59,10 @@ class QLinear(QModule):
             else:
                 raise ValueError('not support weight qtype:{}'.format(w_qtype))
             self.register_buffer('weight', torch.empty(out_channels, in_channels * w_bits // 32, dtype=torch.int32))
+            ####
+            # 按out_channels维度拼接
+            #self.register_buffer('weight', torch.empty(out_channels * w_bits // 32, in_channels, dtype=torch.int32))
+            ####
         else:
             self.register_buffer('weight', torch.empty(out_channels, in_channels))
             self.register_buffer('w_scale', None)
@@ -198,20 +202,37 @@ class QLinear(QModule):
             # print('w_0', intweight[0][:10])
             # exit()
             intweight = intweight.t().cpu().contiguous().numpy().astype(np.uint32)
+            ###
+            #按out_channels维度拼接
+            #intweight = intweight.cpu().contiguous().numpy().astype(np.uint32)
+            ###
             qweight   = np.zeros((intweight.shape[0] * wbit // 32, intweight.shape[1]), dtype=np.uint32)
             
+            #从低位开始拼接
             for i in range(intweight.shape[0]):
                 idx_weight = (i * wbit) // 32
                 off_weight = (i * wbit) %  32
-                if wbit + off_weight <= 32:
-                    qweight[idx_weight] = qweight[idx_weight]<< wbit
-                    qweight[idx_weight] |= intweight[i]     
-                else:
-                    qweight[idx_weight] = qweight[idx_weight] << (32 - off_weight)
-                    qweight[idx_weight] |= (intweight[i] >> (wbit - 32 + off_weight) )
-                    qweight[idx_weight + 1] |= (intweight[i]&BITMASK[wbit - 32 + off_weight-1])
+                qweight[idx_weight] |= (intweight[i] << off_weight)
+                if wbit + off_weight > 32:
+                    qweight[idx_weight + 1] |= (intweight[i] >> (32 - off_weight)) & BITMASK[wbit - 32 + off_weight]
+                    
+            #从高位开始拼接
+            # for i in range(intweight.shape[0]):
+            #     idx_weight = (i * wbit) // 32
+            #     off_weight = (i * wbit) %  32
+            #     if wbit + off_weight <= 32:
+            #         qweight[idx_weight] = qweight[idx_weight]<< wbit
+            #         qweight[idx_weight] |= intweight[i]     
+            #     else:
+            #         qweight[idx_weight] = qweight[idx_weight] << (32 - off_weight)
+            #         qweight[idx_weight] |= (intweight[i] >> (wbit - 32 + off_weight) )
+            #         qweight[idx_weight + 1] |= (intweight[i]&BITMASK[wbit - 32 + off_weight-1])
 
             qlinear.weight.data.copy_(torch.from_numpy(qweight.T.astype(np.int32)))
+            ###
+            #按out_channels维度拼接
+            qlinear.weight.data.copy_(torch.from_numpy(qweight.astype(np.int32)))
+            ###
             if bias is not None:
                 qlinear.bias.data.copy_(bias)
             else:
@@ -265,13 +286,19 @@ class QLinear(QModule):
             for i in range(intweight.shape[0]):
                 idx_weight = (i * wbit) // 32
                 off_weight = (i * wbit) %  32
-                if wbit + off_weight <= 32:
-                    qweight[idx_weight] = qweight[idx_weight]<< wbit
-                    qweight[idx_weight] |= intweight[i]     
-                else:
-                    qweight[idx_weight] = qweight[idx_weight] << (32 - off_weight)
-                    qweight[idx_weight] |= (intweight[i] >> (wbit - 32 + off_weight) )
-                    qweight[idx_weight + 1] |= (intweight[i]&BITMASK[wbit - 32 + off_weight-1])
+                qweight[idx_weight] |= (intweight[i] << off_weight)
+                if wbit + off_weight > 32:
+                    qweight[idx_weight + 1] |= (intweight[i] >> (32 - off_weight)) & BITMASK[wbit - 32 + off_weight]
+            # for i in range(intweight.shape[0]):
+            #     idx_weight = (i * wbit) // 32
+            #     off_weight = (i * wbit) %  32
+            #     if wbit + off_weight <= 32:
+            #         qweight[idx_weight] = qweight[idx_weight]<< wbit
+            #         qweight[idx_weight] |= intweight[i]     
+            #     else:
+            #         qweight[idx_weight] = qweight[idx_weight] << (32 - off_weight)
+            #         qweight[idx_weight] |= (intweight[i] >> (wbit - 32 + off_weight) )
+            #         qweight[idx_weight + 1] |= (intweight[i]&BITMASK[wbit - 32 + off_weight-1])
 
             qlinear.weight.data.copy_(torch.from_numpy(qweight.T.astype(np.int32)))
             if bias is not None:

@@ -2,7 +2,7 @@ quant_config:
   algo: rtn
   model_type: "other_model"
   kwargs:
-    w_dtype: int8    # select from ['int2', 'int3', 'int4', 'int8', 'float16']
+    w_dtype: int4    # select from ['int2', 'int3', 'int4', 'int8', 'float16']
     a_dtype: int8 # select from ['int2', 'int3', 'int4',  'int8', 'float16']
     device: 'cpu'
     offload: 'cpu'
