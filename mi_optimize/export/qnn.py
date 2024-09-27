@@ -231,7 +231,7 @@ class QLinear(QModule):
             qlinear.weight.data.copy_(torch.from_numpy(qweight.T.astype(np.int32)))
             ###
             #按out_channels维度拼接
-            qlinear.weight.data.copy_(torch.from_numpy(qweight.astype(np.int32)))
+            #qlinear.weight.data.copy_(torch.from_numpy(qweight.astype(np.int32)))
             ###
             if bias is not None:
                 qlinear.bias.data.copy_(bias)
