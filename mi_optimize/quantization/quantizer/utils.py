@@ -109,14 +109,12 @@ class Quantizer(torch.nn.Module):
         self.has_zero = has_zero
         self.qtype = qtype
         self.groupsize = groupsize
-        self.qmin = 0
-        self.qmax = (1 << bits) - 1
         if unsign:
             self.qmin = 0
             self.qmax = (1<<bits) - 1
         else:
             self.qmin = -(1<<(bits-1))
-            self.qmax = 1<<(bits-1) - 1
+            self.qmax = (1<<(bits-1)) - 1
     
     def find_params(self, x_min, x_max):
         if not self.has_zero:
