@@ -109,19 +109,22 @@ class Quantizer(torch.nn.Module):
         self.has_zero = has_zero
         self.qtype = qtype
         self.groupsize = groupsize
-        self.qmin = 0
-        self.qmax = (1 << bits) - 1
+        # self.qmin = 0
+        # self.qmax = (1 << bits) - 1
         if unsign:
             self.qmin = 0
             self.qmax = (1<<bits) - 1
         else:
             self.qmin = -(1<<(bits-1))
-            self.qmax = 1<<(bits-1) - 1
+            self.qmax = (1<<(bits-1)) - 1
     
     def find_params(self, x_min, x_max):
         if not self.has_zero:
             max_abs_value = torch.max(abs(x_max), abs(x_min))
+            # print('max_value', max_abs_value)
+            # print("max_min", self.qmax, self.qmin, ((self.qmax - self.qmin) // 2))
             scale = max_abs_value / ((self.qmax - self.qmin) // 2)
+            # print("scale", scale)
             # zero_point = 0 if self.qmin<0 else (self.qmax + self.qmin) // 2
             zero_point = 0 if self.qmin<0 else 1<<(self.bits-1)
             zero_point = zero_point * torch.ones_like(scale)
@@ -131,7 +134,12 @@ class Quantizer(torch.nn.Module):
         return scale, zero_point
 
     def quantize(self, data, scale, zero_point):
-        quantized_data = torch.round(data / scale) + zero_point
+        # scaled_data = data / scale
+        # rounded_data = torch.where(scaled_data >= 0, 
+        #                         torch.floor(scaled_data + 0.5),  # 正数使用四舍五入
+        #                         torch.ceil(scaled_data - 0.5))   # 负数使用向上取整
+        rounded_data = torch.round(data / scale)
+        quantized_data = rounded_data + zero_point
         quantized_data = torch.clamp(quantized_data, self.qmin, self.qmax)
         return quantized_data
     

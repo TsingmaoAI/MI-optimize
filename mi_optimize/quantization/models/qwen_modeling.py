@@ -701,6 +701,12 @@ class Qwen2SdpaAttention(Qwen2Attention):
             # k_pure_linear = torch.nn.functional.linear(hidden_states, self.k_proj.weight)
             # v_pure_linear = torch.nn.functional.linear(hidden_states, self.v_proj.weight)
             qkv_pure = torch.cat([q_pure_linear, k_pure_linear, v_pure_linear], dim=-1)
+            # print("qkv", qkv_pure[:, 0])
+            # qkv_pure.contiguous().cpu().numpy().tofile(os.path.join(f'tmp.bin'))
+            # import numpy as np
+            # tmp = np.fromfile("tmp.bin", np.float32)
+            # print("tmp", tmp)
+            # exit()
             tofile(qkv_pure, self.layer_idx, 'qkv')
 
         query_states = query_states.view(bsz, q_len, self.num_heads, self.head_dim).transpose(1, 2)

@@ -48,7 +48,13 @@ tokenizer = AutoTokenizer.from_pretrained(args.model)
 # Quantize the model
 model.disable_save()
 quant_model = quantize(model, tokenizer=tokenizer, quant_config=config['quant_config'])
-    
+
+
+#save model 
+quant_model.to('cpu')
+quant_model = export_module(quant_model)
+quant_model.save_pretrained('mi_model')
+
 for i in range(len(quant_model.model.layers)):
     os.makedirs(f"output/layer_{i}", exist_ok=True)
     
@@ -73,8 +79,3 @@ with torch.inference_mode():
             None, torch.tensor(position_id, dtype=torch.long),
             layer_forward=24
         )
-
-#save model 
-quant_model.to('cpu')
-quant_model = export_module(quant_model)
-quant_model.save_pretrained('mi_model')
