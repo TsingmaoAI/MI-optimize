@@ -36,7 +36,7 @@ Although LLMs excel in various NLP tasks, their computational and memory demands
 
 ## Framework Overview
 Here's a concise version of the description for the MI-optimize framework:
-![Framework Diagram](framework.png "MI-optimize Framework Overview")
+![Framework Diagram](library_overview.pdf "MI-optimize Framework Overview")
 
 ## Features
 - Support for various quantization algorithms, including:

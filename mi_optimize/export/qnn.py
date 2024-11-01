@@ -168,45 +168,6 @@ class QLinear(QModule):
         negative_mask = intweight & sign_bit_mask != 0  # 检查符号位
         intweight[negative_mask] -= (1 << wbit)  # 转换为负数
         return intweight
-    
-    def unpack_weight(self, qweight, wbit):
-        # 将 qweight 转换为 numpy 的 uint32 格式
-        qweight = qweight.cpu().contiguous().numpy().astype(np.uint32)
-        
-        # 计算原始 intweight 的行数
-        intweight_rows = qweight.shape[0] * 32 // wbit
-        
-        # 初始化解压后的 intweight，类型为 np.uint32
-        intweight = np.zeros((intweight_rows, qweight.shape[1]), dtype=np.int32)
-        
-        # 计算符号位的掩码，用来判断是否为负数
-        sign_bit_mask = 1 << (wbit - 1)
-        
-        # 从低位开始解压
-        for i in range(intweight.shape[0]):
-            idx_weight = (i * wbit) // 32
-            off_weight = (i * wbit) % 32
-            
-            # 先从 qweight 中取出低位部分
-            extracted_value = (qweight[idx_weight] >> off_weight) & BITMASK[wbit - 1]
-            
-            # 如果该部分跨越了32位边界，则需要从下一段中取出高位部分
-            if wbit + off_weight > 32:
-                extracted_value |= (qweight[idx_weight + 1] << (32 - off_weight)) & BITMASK[wbit - 1]
-            
-            # 调试信息
-            # print(f"Row {i}, idx_weight: {idx_weight}, off_weight: {off_weight}, extracted_value (before sign check): {extracted_value}")
-        
-            # 检查符号位并转换为负数，逐个元素处理
-            for j in range(extracted_value.shape[0]):
-                if extracted_value[j] & sign_bit_mask:
-                    # 将补码的负数转换为int32的负数形式
-                    extracted_value[j] -= (1 << wbit)
-            # 调试信息
-            intweight[i] = extracted_value
-        
-        # 将 intweight 返回为 PyTorch 的 Tensor，并转换回 int32 类型
-        return torch.from_numpy(intweight).to(torch.int32).to(DEVICE)
 
     @torch.no_grad()
     def forward(self, x):
@@ -231,7 +192,13 @@ class QLinear(QModule):
                 x_max = x.amax(dim=1, keepdim=True)
                 # print('x_min_max', x_min, x_max)
                 x_scale, x_zero = self.a_quantizer.find_params(x_min=x_min, x_max=x_max)
-                int_x = self.a_quantizer.quantize(x, x_scale, x_zero)
+                # int_x = self.a_quantizer.quantize(x, x_scale, x_zero)
+                # rounded_data = torch.where((x/ x_scale) >= 0, 
+                #                 torch.floor(scaled_data + 0.5),  # 正数使用四舍五入
+                #                 torch.ceil(scaled_data - 0.5))   # 负数使用向上取整
+                rounded_data = torch.round(x/x_scale)
+                quantized_data = rounded_data + x_zero
+                int_x = torch.clamp(quantized_data, -128, 127)
                 int_x = int_x.to(torch.int32)
                 # for i in range(3):
                 #     print('x_scale {:.8f}'.format(x_scale[i][0]))
