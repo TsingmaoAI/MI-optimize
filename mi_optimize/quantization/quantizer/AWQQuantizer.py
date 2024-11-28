@@ -229,8 +229,8 @@ class LinearAwqQuantizer(BaseQuantizer):
             clear_mem()
 
         # quantize activation
-        if self.abit not in [Precision.FP16, Precision.FP32]:
-            raise RuntimeError('awq quantizer cannot support quantization of activations to {} bit'.format(PRECISION_TO_STR[self.abit]))
+        # if self.abit not in [Precision.FP16, Precision.FP32]:
+        #     raise RuntimeError('awq quantizer cannot support quantization of activations to {} bit'.format(PRECISION_TO_BIT[self.abit]))
 
     def forward(self, x):
         origin_dtype = x.dtype
@@ -239,7 +239,7 @@ class LinearAwqQuantizer(BaseQuantizer):
         elif self.abit == Precision.FP32 and origin_dtype == torch.float32:
             x = x.float()
         else:
-            raise RuntimeError('awq quantizer cannot support quantization of activations to {} bit'.format(PRECISION_TO_STR[self.abit]))
+            raise RuntimeError('awq quantizer cannot support quantization of activations to {} bit'.format(PRECISION_TO_BIT[self.abit]))
 
         if self.wbit == Precision.FP16:
             w = self.quant_hub_linear.core.weight.half().to(x)

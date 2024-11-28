@@ -153,8 +153,8 @@ class LinearGPTQQuantizer(BaseQuantizer):
             clear_mem()
 
         # quantize activation
-        if self.abit not in [Precision.FP16, Precision.FP32]:
-            raise RuntimeError('gptq quantizer cannot support quantization of activations to {} bit'.format(PRECISION_TO_STR[self.abit]))
+        # if self.abit not in [Precision.FP16, Precision.FP32]:
+        #     raise RuntimeError('gptq quantizer cannot support quantization of activations to {} bit'.format(PRECISION_TO_BIT[self.abit]))
 
     def forward(self, x):
         origin_dtype = x.dtype
@@ -163,7 +163,7 @@ class LinearGPTQQuantizer(BaseQuantizer):
         elif self.abit == Precision.FP32:
             x = x.float()
         else:
-            raise RuntimeError('gptq quantizer cannot support quantization of activations to {} bit'.format(PRECISION_TO_STR[self.abit]))
+            raise RuntimeError('gptq quantizer cannot support quantization of activations to {} bit'.format(PRECISION_TO_BIT[self.abit]))
 
         if self.wbit == Precision.FP16:
             w = self.quant_hub_linear.core.weight.half().to(x)
