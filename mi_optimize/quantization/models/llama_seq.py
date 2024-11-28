@@ -116,9 +116,9 @@ def llama_sequential(model, algo, data, **kwargs):
                         smooth_weight = layer.core.weight.data.mul(smooth_factor)
                         layer.core.weight.data = smooth_weight.to(layer.core.weight.device)
                         layer.quantizer[1].quantize()
-                        Q = layer.quantizer[1].Q.value
+                        Q = layer.quantizer[1].fake_w
                         layer.quantizer[1].to(offload)
-                        layer.quantizer[0].Q = Q
+                        layer.quantizer[0].fake_w = Q
                         layer.set_default_quantizer(0)
                         del layer.quantizer[1], layer.core.weight
                         layer.to(offload)
@@ -130,8 +130,8 @@ def llama_sequential(model, algo, data, **kwargs):
                         smooth_weight = layer.core.weight.data.mul(smooth_factors.view(1, -1))
                         layer.core.weight.data = smooth_weight.to(layer.core.weight.data)
                         layer.quantizer[1].quantize()
-                        Q = layer.quantizer[1].Q.value
-                        layer.quantizer[0].Q = Q
+                        Q = layer.quantizer[1].fake_w
+                        layer.quantizer[0].fake_w = Q
                         layer.set_default_quantizer(0)
                         del layer.quantizer[1], layer.core.weight
                         layer.to(offload)
